@@ -1,0 +1,82 @@
+name: "Check Pull Request"
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "rust-toolchain.toml"
+      - "rustfmt.toml"
+      - ".github/workflows/*.yml"
+  push:
+    branches:
+      - develop
+
+# Ensures only one build is run per branch, unless pushing to develop
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/develop' && github.run_number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_ARGS: ${{ github.ref == 'refs/heads/develop' && '--release' || '' }}
+  CARGO_TERM_COLOR: always
+  SKIP_WASM_BUILD: 1
+
+jobs:
+  fmt:
+    if: ${{ !startsWith(github.head_ref, 'release/') }}
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo fmt --all -- --check
+
+  lint:
+    if: ${{ !startsWith(github.head_ref, 'release/') }}
+    name: Clippy
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./.github/scripts/free_disk_space.sh
+      - run: sudo apt-get install -y protobuf-compiler
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-lint-
+      - run: cargo clippy --workspace --all-features --all-targets ${{ env.CARGO_ARGS }} -- -D warnings
+
+  test:
+    if: ${{ !startsWith(github.head_ref, 'release/') }}
+    name: Test
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+      matrix:
+        runtime:
+          - ajuna-runtime
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./.github/scripts/free_disk_space.sh
+      - run: sudo apt-get install -y protobuf-compiler
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ matrix.runtime }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-test-${{ matrix.runtime }}-
+      - run: cargo test --all-features --all-targets ${{ env.CARGO_ARGS }} -p ${{ matrix.runtime }}
