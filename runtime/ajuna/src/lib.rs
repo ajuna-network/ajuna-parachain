@@ -144,10 +144,9 @@ pub type Executive = frame_executive::Executive<
 // entire chain state. However, this is to be expected and can be ignored:
 // https://substrate.stackexchange.com/questions/10986/runtime-upgrade-for-parachainsystemhostconfiguration
 type Migrations = (
-	// We have currently 356 identities on Bajun, so setting the max number to be migrated to 1_000
-	// should be more than enough, while still staying in a limit that will not overweigh our
-	// runtime migration.
-	pallet_identity::migration::versioned::V0ToV1<Runtime, { 1_000 }>,
+	// todo: note amount of identities.
+	// while still staying in a limit that will not overweigh our runtime migration.
+	pallet_identity::migration::versioned::V0ToV1<Runtime, 1_000>,
 	// Track inactive funds of the teleporter account, currently we don't use that, but it doesn't
 	// hurt either.
 	pallet_balances::migration::MigrateToTrackInactive<Runtime, xcm_config::CheckingAccount>,
