@@ -55,8 +55,8 @@ jobs:
         with:
           version: "3.6.1"
 
-      - name: Add wasm32-unknown-unknown target
-        run: rustup target add wasm32-unknown-unknown
+      - name: Install rust toolchain from toolchain.toml
+        run: rustup show
 
       - name: Build ${{ matrix.runtime.name }}
         run: |
