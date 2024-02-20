@@ -137,7 +137,23 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
+	Migrations,
 >;
+
+// Note: if try-runtime pre/post checks are enabled it will error when it tries to decode the
+// entire chain state. However, this is to be expected and can be ignored:
+// https://substrate.stackexchange.com/questions/10986/runtime-upgrade-for-parachainsystemhostconfiguration
+type Migrations = (
+	// Track inactive funds of the teleporter account, currently we don't use that, but it doesn't
+	// hurt either.
+	pallet_balances::migration::MigrateToTrackInactive<Runtime, xcm_config::CheckingAccount>,
+	// Simple migration ordering the set of invulnerables.
+	pallet_collator_selection::migration::v1::MigrateToV1<Runtime>,
+	// Simple migration of the queue config data.
+	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
+);
+
+//type Migrations = (pallet_ajuna_awesome_avatars::migration::v6::MigrateToV6<Runtime>,);
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
