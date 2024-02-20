@@ -3,6 +3,6 @@
     "name": "ajuna",
     "package": "ajuna-runtime",
     "path": "runtime/ajuna-runtime",
-    "uri": "wss://rpc-parachain.ajuna.network:443"
+    "uri": "wss://rpc-para.ajuna.network:443"
   }
 ]
