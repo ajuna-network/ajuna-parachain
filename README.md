@@ -14,7 +14,7 @@ A game platform [parachain](https://wiki.polkadot.network/docs/learn-parachains)
 Chopsticks can be used to:
 * Test runtime upgrades and functionality thereafter
 * Setup XCM with multiple networks and allow for XCM testing
-* Test execution of scheduled task, which are mostly execution of governance proposals.
+* Test execution of scheduled task, which is mostly execution of governance proposals.
 
 **Preliminary Note**
 Chopsticks will by default listen on the IPV6 localhost port 8000, which means we can either access it with:
@@ -25,10 +25,10 @@ but ws://127.0.0.1:8000 doesn't work.
 
 ### Test Runtime Upgrades
 Note: Currently, try-runtime seems to be a better solution to test the runtime upgrade itself, but chopsticks will be
-good to test some basic functionality after the runtime upgrade happened.
+good to test functionality after the runtime upgrade happened.
 
 The following command overrides the runtime with the local build of the upgraded runtime and creates a local fork of
-the connected network including all storage values, and with the overridden storage values of the config file.
+the connected network including all storage values and the overridden storage values of the config file.
 
 ```bash
 nvm use 20
