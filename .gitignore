@@ -34,4 +34,7 @@ build/
 /dist/
 /target
 
+# Chopsticks
+/chopsticks/*.db.sqlite*
+
 # Before adding new lines, see the comment at the top.

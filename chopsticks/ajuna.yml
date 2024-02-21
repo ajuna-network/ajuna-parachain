@@ -1,0 +1,21 @@
+# In the future we want to add this config to https://github.com/AcalaNetwork/chopsticks/tree/master/configs.
+# But we should wait until we have the governance pallets included because this will change this config.
+endpoint:
+  - wss://ajuna.api.onfinality.io/public-ws
+  - wss://ajuna.public.curie.radiumblock.co/ws
+mock-signature-host: true
+block: ${env.AJUNA_PARACHAIN_BLOCK_NUMBER}
+db: ./chopsticks/ajuna-parachain.db.sqlite
+runtime-log-level: 5
+# wasm-override: ajuna_runtime.wasm
+
+# Once we have governance we want to make Alice single councillor and technical committee member.
+import-storage:
+  Sudo:
+    Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+  System:
+    Account: # Give our dev accounts some funds
+      - - - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        - providers: 1
+          data:
+            free: 1000000000000000
