@@ -11,6 +11,10 @@
 A game platform [parachain](https://wiki.polkadot.network/docs/learn-parachains) built with [Substrate](https://docs.substrate.io/).
 
 ## Chopsticks
+Chopsticks can be used to create a local fork of a life network, copying all its storage values and override specific 
+storage values with a config file. The fork will create a block whenever an extrinsic is added to the tx-pool but
+it will be stale otherwise, but exposes a fast-forward rpc to produce 'n' blocks, which is useful for scheduler testing.
+
 Chopsticks can be used to:
 * Test runtime upgrades and functionality thereafter
 * Setup XCM with multiple networks and allow for XCM testing
@@ -27,8 +31,8 @@ but ws://127.0.0.1:8000 doesn't work.
 Note: Currently, try-runtime seems to be a better solution to test the runtime upgrade itself, but chopsticks will be
 good to test functionality after the runtime upgrade happened.
 
-The following command overrides the runtime with the local build of the upgraded runtime and creates a local fork of
-the connected network including all storage values and the overridden storage values of the config file.
+The following command overrides the runtime with the local build of the upgraded runtime and will run the migration 
+upon the next block, which means as soon as we send an arbitrary extrinsic.
 
 ```bash
 nvm use 20
