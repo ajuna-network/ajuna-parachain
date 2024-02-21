@@ -1,3 +1,5 @@
+# In the future we want to add this config to https://github.com/AcalaNetwork/chopsticks/tree/master/configs.
+# But we should wait until we have the governance pallets included because this will change this config.
 endpoint:
   - wss://ajuna.api.onfinality.io/public-ws
   - wss://ajuna.public.curie.radiumblock.co/ws
