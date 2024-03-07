@@ -41,16 +41,17 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::pallet_prelude::ConstU32;
-use frame_support::traits::fungible::HoldConsideration;
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
-use frame_support::traits::{Footprint, TransformOrigin};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
+	pallet_prelude::ConstU32,
 	parameter_types,
-	traits::{ConstBool, Contains, EitherOfDiverse},
+	traits::{
+		fungible::HoldConsideration,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		ConstBool, Contains, EitherOfDiverse, Footprint, TransformOrigin,
+	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -72,10 +73,13 @@ use xcm_config::XcmOriginToTransactDispatchOrigin;
 pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use parachains_common::{BlockNumber, Hash, Header};
-use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
-use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
+use parachains_common::{
+	message_queue::{NarrowOriginToSibling, ParaIdToSibling},
+	BlockNumber, Hash, Header,
+};
+use polkadot_runtime_common::{
+	xcm_sender::NoPriceForMessageDelivery, BlockHashCount, SlowAdjustingFeeUpdate,
+};
 use sp_runtime::traits::{Convert, IdentifyAccount, IdentityLookup, Verify};
 
 use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};

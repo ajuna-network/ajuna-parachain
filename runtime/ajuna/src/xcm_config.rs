@@ -19,10 +19,9 @@ use super::{
 	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
 };
 use core::{marker::PhantomData, ops::ControlFlow};
-use frame_support::traits::Contains;
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Everything, Nothing, ProcessMessageError},
+	traits::{ConstU32, Contains, Everything, Nothing, ProcessMessageError},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -155,9 +154,9 @@ impl ShouldExecute for DenyReserveTransferToRelayChain {
 				InitiateReserveWithdraw {
 					reserve: Location { parents: 1, interior: Here },
 					..
-				}
-				| DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. }
-				| TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
+				} |
+				DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. } |
+				TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
 					Err(ProcessMessageError::Unsupported) // Deny
 				},
 				// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
