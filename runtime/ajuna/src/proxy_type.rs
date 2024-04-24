@@ -62,6 +62,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				RuntimeCall::Session(..) |
 				RuntimeCall::Council(..) |
 				RuntimeCall::CouncilMembership(..) |
+				RuntimeCall::TechnicalCommittee(..) |
+				RuntimeCall::TechnicalCommitteeMembership(..) |
+				RuntimeCall::Democracy(..) |
 				RuntimeCall::Treasury(..) |
 				RuntimeCall::Vesting(orml_vesting::Call::claim{..}) |
 				RuntimeCall::Vesting(orml_vesting::Call::claim_for{..}) |
