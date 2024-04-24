@@ -86,17 +86,17 @@ pub struct BajunKeys;
 
 impl BajunKeys {
 	pub fn root() -> AccountId {
-		pub_sr25519("5Gs3eenLExWbqQiMP4RmCAj7L3iGp1onbjgAV5f7EddKYg3L").into()
+		pub_sr25519("13EnS5vY7i1rvF7NqMniipYpqtbbUp3burkeYEEp6RvLMwGz").into()
 	}
 	pub fn invulnerables() -> Vec<(AccountId, AuraId)> {
 		vec![
 			(
-				pub_sr25519("5F1hLjAfxfY6BKey2GArFnSECzsNcoWwD8qNZgJQJFGhGfy4").into(),
-				pub_sr25519("5F1hLjAfxfY6BKey2GArFnSECzsNcoWwD8qNZgJQJFGhGfy4").into(),
+				pub_sr25519("14NC15QdLuHwYFPUM1x87vsh15EsvPDtLhZhvb5vExHkCHPa").into(),
+				pub_sr25519("14NC15QdLuHwYFPUM1x87vsh15EsvPDtLhZhvb5vExHkCHPa").into(),
 			),
 			(
-				pub_sr25519("5F9o7PQhUK2sEqkGdjB8NsKzDyufCmyFqvvgCsPdvcKuszhy").into(),
-				pub_sr25519("5F9o7PQhUK2sEqkGdjB8NsKzDyufCmyFqvvgCsPdvcKuszhy").into(),
+				pub_sr25519("13GbXQAWfLGx9bAuRVN3zdHwL2vs94PKzbTLfqyUfoaB88Lo").into(),
+				pub_sr25519("13GbXQAWfLGx9bAuRVN3zdHwL2vs94PKzbTLfqyUfoaB88Lo").into(),
 			),
 		]
 	}
