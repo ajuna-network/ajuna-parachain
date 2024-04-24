@@ -170,13 +170,6 @@ fn testnet_genesis(
 	id: ParaId,
 ) -> serde_json::Value {
 	serde_json::json!({
-		"system": {
-			"code": ajuna_runtime::WASM_BINARY
-				.expect("WASM binary was not build, please build it!")
-				.to_vec(),
-		},
-		"vesting": ajuna_runtime::VestingConfig { vesting: Default::default() },
-		"council": ajuna_runtime::CouncilConfig::default(),
 		"balances": {
 			"balances": endowed_accounts.iter().cloned().map(|k| (k, 1u64 << 60)).collect::<Vec<_>>(),
 		},

@@ -1,60 +1,34 @@
 #!/bin/bash
 set -e
 
-RUNTIME="ajuna"
+RUNTIME_WEIGHT_DIR=runtime/ajuna/src/weights
+COLLATOR=./target/release/ajuna-node
+CHAIN=local
 
-# common pallets shared by both networks
-PALLETS=(
-  "cumulus-pallet-xcmp-queue"
-  "frame-system"
-  "pallet-balances"
-  "pallet-collator-selection"
-  "pallet-collective"
-  "pallet-identity"
-  "pallet-membership"
-  "pallet-multisig"
-  "pallet-nfts"
-  "pallet-preimage"
-  "pallet-proxy"
-  "pallet-scheduler"
-  "pallet-session"
-  "pallet-timestamp"
-  "pallet-treasury"
-  "pallet-utility"
-)
+mkdir -p $RUNTIME_WEIGHT_DIR
 
-cd "$(git rev-parse --show-toplevel)" || exit
-cargo build-"${RUNTIME}"-benchmarks --features "experimental"
+$COLLATOR benchmark pallet \
+    --chain ${CHAIN} \
+    --list |\
+  tail -n+2 |\
+  cut -d',' -f1 |\
+  uniq > "ajuna_runtime_pallets"
 
-for PALLET in "${PALLETS[@]}"; do
-  ./target/release/"${RUNTIME}"-para benchmark pallet \
-    --chain=dev \
-    --steps=50 \
-    --repeat=20 \
-    --pallet="${PALLET}" \
-    --extrinsic="*" \
-    --execution=wasm \
-    --wasm-execution=compiled \
-    --heap-pages=4096 \
-    --header="./HEADER-AGPL" \
-    --output="./runtime/${RUNTIME}/src/weights/${PALLET//-/_}.rs"
-done
+# For each pallet found in the previous command, run benches on each function
+while read -r line; do
+  pallet="$(echo "$line" | cut -d' ' -f1)";
+  echo benchmarking "$pallet"...
 
-# custom pallets for ajuna network
-[ "${RUNTIME}" != "ajuna" ] && exit 0
-CUSTOM_PALLETS=(
-  "pallet-ajuna-awesome-avatars"
-)
-for PALLET in "${CUSTOM_PALLETS[@]}"; do
-  ./target/release/"${RUNTIME}"-para benchmark pallet \
-    --chain=dev \
-    --steps=50 \
-    --repeat=20 \
-    --pallet="${PALLET}" \
-    --extrinsic="*" \
-    --execution=wasm \
-    --wasm-execution=compiled \
-    --heap-pages=4096 \
-    --template="./.maintain/frame-weight-template.hbs" \
-    --output="./runtime/${RUNTIME}/src/weights/${PALLET//-/_}.rs"
-done
+  $COLLATOR \
+  benchmark pallet \
+  --chain=${CHAIN} \
+  --steps=50 \
+  --repeat=20 \
+  --pallet="$pallet" \
+  --extrinsic="*" \
+  --wasm-execution=compiled \
+  --heap-pages=4096 \
+  --header=./HEADER-AGPL \
+  --output=./$RUNTIME_WEIGHT_DIR/"$pallet".rs
+done < "ajuna_runtime_pallets"
+rm "ajuna_runtime_pallets"
