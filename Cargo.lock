@@ -152,6 +152,7 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus-aura",
  "sp-core",
+ "sp-keyring",
  "sp-keystore",
  "sp-runtime",
  "sp-timestamp",

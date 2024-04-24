@@ -37,4 +37,7 @@ build/
 # Chopsticks
 /chopsticks/*.db.sqlite*
 
+# genesis state and chain-spec dumps
+/chain_dumps
+
 # Before adding new lines, see the comment at the top.

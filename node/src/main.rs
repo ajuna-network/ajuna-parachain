@@ -3,6 +3,7 @@
 #![warn(missing_docs)]
 
 mod chain_spec;
+mod chain_spec_utils;
 mod cli;
 mod command;
 mod rpc;
