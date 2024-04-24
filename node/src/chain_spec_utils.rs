@@ -117,10 +117,10 @@ impl ToString for RelayChain {
 	fn to_string(&self) -> String {
 		match self {
 			RelayChain::Kusama => "kusama".into(),
-			RelayChain::Westend => "ajuna-westend".into(),
+			RelayChain::Westend => "westend".into(),
 			RelayChain::KusamaLocal => "kusama-local".into(),
 			RelayChain::RococoLocal => "rococo-local".into(),
-			RelayChain::WestendLocal => "ajuna-westend-local".into(),
+			RelayChain::WestendLocal => "westend-local".into(),
 		}
 	}
 }
