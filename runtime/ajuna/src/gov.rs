@@ -15,15 +15,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	AccountId, Balance, BlockNumber, Council, CouncilMembership, OriginCaller, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, TechnicalCommittee, AJUN, DAYS,
+	weights, AccountId, Balance, BlockNumber, Council, OriginCaller, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, TechnicalCommittee, AJUN, DAYS,
 };
 use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, EitherOfDiverse},
 	weights::Weight,
 };
-use frame_system::{EnsureRoot, EnsureSignedBy};
+use frame_system::EnsureRoot;
 use pallet_collective::{EnsureMember, EnsureProportionAtLeast, EnsureProportionMoreThan};
 use sp_runtime::Perbill;
 
@@ -65,7 +65,7 @@ impl pallet_collective::Config<CouncilCollectiveInstance> for Runtime {
 	type MaxProposals = ConstU32<100>;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = EnsureRootOrMoreThanHalfCouncil;
 	type MaxProposalWeight = MaxProposalWeight;
 }
@@ -82,7 +82,7 @@ impl pallet_membership::Config<CouncilMembershipInstance> for Runtime {
 	type MembershipInitialized = Council;
 	type MembershipChanged = Council;
 	type MaxMembers = CouncilMaxMembers;
-	type WeightInfo = pallet_membership::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_membership::WeightInfo<Runtime>;
 }
 
 /// The technical committee primarily serves to safeguard against malicious referenda
@@ -102,7 +102,7 @@ impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type MaxProposals = ConstU32<100>;
 	type MaxMembers = TechnicalCommitteeMaxMembers;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = EnsureRootOrMoreThanHalfCouncil;
 	type MaxProposalWeight = MaxProposalWeight;
 }
@@ -119,7 +119,7 @@ impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime
 	type MembershipInitialized = TechnicalCommittee;
 	type MembershipChanged = TechnicalCommittee;
 	type MaxMembers = TechnicalCommitteeMaxMembers;
-	type WeightInfo = pallet_membership::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_membership::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -131,7 +131,7 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Runtime {
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_democracy::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Scheduler = pallet_scheduler::Pallet<Runtime>;
 	type Preimages = pallet_preimage::Pallet<Runtime>;
@@ -153,7 +153,10 @@ impl pallet_democracy::Config for Runtime {
 	type ExternalDefaultOrigin = EnsureRootOrMoreThanHalfCouncil;
 	// Initially, we want that only the council can submit proposals to
 	// prevent malicious proposals.
-	type SubmitOrigin = EnsureSignedBy<CouncilMembership, AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type SubmitOrigin = frame_system::EnsureSignedBy<crate::CouncilMembership, AccountId>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
 	type FastTrackOrigin = EnsureRootOrMoreThanHalfTechnicalCommittee;
 	type InstantOrigin = EnsureRootOrMoreThanHalfTechnicalCommittee;
 	// To cancel a proposal that has passed.
