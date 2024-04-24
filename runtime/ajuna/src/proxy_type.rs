@@ -62,6 +62,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				RuntimeCall::Session(..) |
 				RuntimeCall::Council(..) |
 				RuntimeCall::CouncilMembership(..) |
+				RuntimeCall::TechnicalCommittee(..) |
+				RuntimeCall::TechnicalCommitteeMembership(..) |
+				RuntimeCall::Democracy(..) |
 				RuntimeCall::Treasury(..) |
 				RuntimeCall::Vesting(orml_vesting::Call::claim{..}) |
 				RuntimeCall::Vesting(orml_vesting::Call::claim_for{..}) |
@@ -82,8 +85,8 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			},
 			ProxyType::IdentityJudgement => matches!(
 				c,
-				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. }) |
-					RuntimeCall::Utility(..)
+				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. })
+					| RuntimeCall::Utility(..)
 			),
 			ProxyType::CancelProxy => {
 				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))

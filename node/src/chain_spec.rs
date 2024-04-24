@@ -1,4 +1,4 @@
-use ajuna_runtime::{AccountId, AuraId, Signature};
+use ajuna_runtime::{AccountId, AuraId, Signature, EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -185,7 +185,21 @@ fn testnet_genesis(
 		},
 		"collatorSelection": {
 			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-			"candidacyBond": 0_u64,
+			"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+		},
+		"council": {
+			"members": vec![
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_account_id_from_seed::<sr25519::Public>("Charlie"),
+			]
+		},
+		"technicalCommittee": {
+			"members": vec![
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_account_id_from_seed::<sr25519::Public>("Charlie"),
+			]
 		},
 		"session": {
 			"keys": invulnerables

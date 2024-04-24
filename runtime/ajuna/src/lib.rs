@@ -22,10 +22,12 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod gov;
 mod proxy_type;
 mod weights;
 pub mod xcm_config;
 
+use crate::gov::EnsureRootOrMoreThanHalfCouncil;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
@@ -41,17 +43,16 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_support::pallet_prelude::ConstU32;
+use frame_support::traits::fungible::HoldConsideration;
+use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
+use frame_support::traits::{LinearStoragePrice, TransformOrigin};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
-	pallet_prelude::ConstU32,
 	parameter_types,
-	traits::{
-		fungible::HoldConsideration,
-		tokens::{PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, Contains, EitherOfDiverse, Footprint, TransformOrigin,
-	},
+	traits::{ConstBool, Contains},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -62,7 +63,6 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
-use pallet_collective::{EnsureProportionAtLeast, EnsureProportionMoreThan};
 use pallet_identity::legacy::IdentityInfo;
 use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -73,19 +73,23 @@ use xcm_config::XcmOriginToTransactDispatchOrigin;
 pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
-use parachains_common::{
-	message_queue::{NarrowOriginToSibling, ParaIdToSibling},
-	BlockNumber, Hash, Header,
-};
-use polkadot_runtime_common::{
-	xcm_sender::NoPriceForMessageDelivery, BlockHashCount, SlowAdjustingFeeUpdate,
-};
-use sp_runtime::traits::{Convert, IdentifyAccount, IdentityLookup, Verify};
+use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 
 use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 
 // XCM Imports
 use staging_xcm::latest::prelude::BodyId;
+
+use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+use parachains_common::{BlockNumber, Hash, Header};
+use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
+use sp_runtime::traits::{IdentifyAccount, IdentityLookup, Verify};
+
+parameter_types! {
+	pub const OneDay: BlockNumber = DAYS;
+	pub const OneWeek: BlockNumber = 7 * DAYS;
+	pub const TwoWeeks: BlockNumber = 14 * DAYS;
+}
 
 /// The address format for describing accounts.
 pub type Address = MultiAddress<AccountId, ()>;
@@ -333,7 +337,10 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::Sudo(_) |
 			RuntimeCall::Treasury(_) |
 			RuntimeCall::Council(_) |
-			RuntimeCall::CouncilMembership(_) => true
+			RuntimeCall::CouncilMembership(_) |
+			RuntimeCall::TechnicalCommittee(_) |
+			RuntimeCall::TechnicalCommitteeMembership(_) |
+			RuntimeCall::Democracy(_) => true
 		}
 	}
 }
@@ -427,7 +434,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type RuntimeHoldReason = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = ();
 }
 
@@ -459,42 +466,6 @@ parameter_types! {
 	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
 }
 
-type CouncilCollective = pallet_collective::Instance2;
-impl pallet_collective::Config<CouncilCollective> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type Proposal = RuntimeCall;
-	type RuntimeEvent = RuntimeEvent;
-	type MotionDuration = Weekly;
-	type MaxProposals = frame_support::traits::ConstU32<100>;
-	type MaxMembers = CouncilMaxMembers;
-	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
-	type SetMembersOrigin = EnsureRoot<AccountId>;
-	type MaxProposalWeight = MaxProposalWeight;
-}
-
-type EnsureRootOrMoreThanHalfCouncil = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
->;
-type EnsureRootOrAtLeastTwoThirdsCouncil = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
->;
-
-impl pallet_membership::Config<pallet_membership::Instance2> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type AddOrigin = EnsureRootOrMoreThanHalfCouncil;
-	type RemoveOrigin = EnsureRootOrMoreThanHalfCouncil;
-	type SwapOrigin = EnsureRootOrMoreThanHalfCouncil;
-	type ResetOrigin = EnsureRootOrAtLeastTwoThirdsCouncil;
-	type PrimeOrigin = EnsureRootOrAtLeastTwoThirdsCouncil;
-	type MembershipInitialized = Council;
-	type MembershipChanged = Council;
-	type MaxMembers = CouncilMaxMembers;
-	type WeightInfo = weights::pallet_membership::WeightInfo<Runtime>;
-}
-
 parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const SpendPayoutPeriod: u32 = 5;
@@ -509,7 +480,7 @@ impl pallet_treasury::Config for Runtime {
 	type ProposalBond = FivePercent;
 	type ProposalBondMinimum = MinimumProposalBond;
 	type ProposalBondMaximum = ();
-	type SpendPeriod = Weekly;
+	type SpendPeriod = OneWeek;
 	type Burn = ZeroPercent;
 	type PalletId = TreasuryPalletId;
 	type BurnDestination = ();
@@ -660,7 +631,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type UpdateOrigin = CollatorSelectionUpdateOrigin;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
-	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;
 	// should be a multiple of session or things will get inconsistent
 	type KickThreshold = Period;
@@ -668,6 +638,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
 	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
+	type MinEligibleCollators = MinEligibleCollators;
 }
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
@@ -777,11 +748,11 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-pub struct ConvertDeposit;
-impl Convert<Footprint, u128> for ConvertDeposit {
-	fn convert(a: Footprint) -> u128 {
-		(a.count as u128) * 2 + (a.size as u128)
-	}
+parameter_types! {
+	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub const PreimageByteDeposit: Balance = deposit(0, 1);
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 
 impl pallet_preimage::Config for Runtime {
@@ -789,7 +760,12 @@ impl pallet_preimage::Config for Runtime {
 	type WeightInfo = weights::pallet_preimage::WeightInfo<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type Consideration = HoldConsideration<AccountId, Balances, (), ConvertDeposit>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -830,8 +806,15 @@ construct_runtime!(
 		// Governance
 		Sudo: pallet_sudo = 40,
 		Treasury: pallet_treasury = 41,
+		// type CouncilCollectiveInstance = pallet_collective::Instance2
 		Council: pallet_collective::<Instance2> = 42,
+		// type CouncilMembershipInstance = pallet_membership::Instance2;
 		CouncilMembership: pallet_membership::<Instance2> = 43,
+		// pub type TechnicalCommitteeInstance = pallet_collective::Instance1;
+		TechnicalCommittee: pallet_collective::<Instance1> = 44,
+		// type TechnicalCommitteeMembershipInstance = pallet_membership::Instance1;
+		TechnicalCommitteeMembership: pallet_membership::<Instance1> = 45,
+		Democracy: pallet_democracy = 46,
 	}
 );
 
@@ -842,21 +825,23 @@ extern crate frame_benchmarking;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
+		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
-		[pallet_session, SessionBench::<Runtime>]
-		[pallet_timestamp, Timestamp]
-		[pallet_multisig, Multisig]
-		[pallet_utility, Utility]
 		[pallet_collator_selection, CollatorSelection]
-		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_treasury, Treasury]
 		[pallet_collective, Council]
-		[pallet_membership, CouncilMembership]
+		// [pallet_collective, TechnicalCommittee] // writes to the same file
 		[pallet_identity, Identity]
+		[pallet_membership, CouncilMembership]
+		// [pallet_membership, TechnicalCommitteeMembership] // writes to the same file
+		[pallet_multisig, Multisig]
 		[pallet_preimage, Preimage]
 		[pallet_proxy, Proxy]
 		[pallet_scheduler, Scheduler]
+		[pallet_session, SessionBench::<Runtime>]
+		[pallet_timestamp, Timestamp]
+		[pallet_treasury, Treasury]
+		[pallet_utility, Utility]
 	);
 }
 
