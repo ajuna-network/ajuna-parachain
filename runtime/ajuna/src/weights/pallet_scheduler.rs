@@ -201,6 +201,83 @@ impl<T: frame_system::Config> pallet_scheduler::WeightInfo for WeightInfo<T> {
 			// Standard Error: 76_483
 			.saturating_add(Weight::from_parts(1_045_544, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
+	/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Retries` (r:0 w:1)
+	/// Proof: `Scheduler::Retries` (`max_values`: None, `max_size`: Some(30), added: 2505, mode: `MaxEncodedLen`)
+	/// The range of component `s` is `[1, 50]`.
+	fn schedule_retry(s: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `118`
+		//  Estimated: `42428`
+		// Minimum execution time: 13_100_000 picoseconds.
+		Weight::from_parts(14_068_473, 0)
+			.saturating_add(Weight::from_parts(0, 42428))
+			// Standard Error: 655
+			.saturating_add(Weight::from_parts(27_879, 0).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
+	}
+	/// Storage: `Scheduler::Agenda` (r:1 w:0)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Retries` (r:0 w:1)
+	/// Proof: `Scheduler::Retries` (`max_values`: None, `max_size`: Some(30), added: 2505, mode: `MaxEncodedLen`)
+	fn set_retry() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `8928`
+		//  Estimated: `42428`
+		// Minimum execution time: 36_200_000 picoseconds.
+		Weight::from_parts(37_700_000, 0)
+			.saturating_add(Weight::from_parts(0, 42428))
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Scheduler::Lookup` (r:1 w:0)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Agenda` (r:1 w:0)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Retries` (r:0 w:1)
+	/// Proof: `Scheduler::Retries` (`max_values`: None, `max_size`: Some(30), added: 2505, mode: `MaxEncodedLen`)
+	fn set_retry_named() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `9606`
+		//  Estimated: `42428`
+		// Minimum execution time: 41_700_000 picoseconds.
+		Weight::from_parts(43_600_000, 0)
+			.saturating_add(Weight::from_parts(0, 42428))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Scheduler::Agenda` (r:1 w:0)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Retries` (r:0 w:1)
+	/// Proof: `Scheduler::Retries` (`max_values`: None, `max_size`: Some(30), added: 2505, mode: `MaxEncodedLen`)
+	fn cancel_retry() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `8940`
+		//  Estimated: `42428`
+		// Minimum execution time: 34_100_000 picoseconds.
+		Weight::from_parts(35_800_000, 0)
+			.saturating_add(Weight::from_parts(0, 42428))
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Scheduler::Lookup` (r:1 w:0)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Agenda` (r:1 w:0)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Retries` (r:0 w:1)
+	/// Proof: `Scheduler::Retries` (`max_values`: None, `max_size`: Some(30), added: 2505, mode: `MaxEncodedLen`)
+	fn cancel_retry_named() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `9618`
+		//  Estimated: `42428`
+		// Minimum execution time: 41_200_000 picoseconds.
+		Weight::from_parts(42_900_000, 0)
+			.saturating_add(Weight::from_parts(0, 42428))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 }
