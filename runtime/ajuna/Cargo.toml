@@ -213,5 +213,3 @@ try-runtime = [
     "pallet-xcm/try-runtime",
     "staging-parachain-info/try-runtime",
 ]
-
-experimental = [ "pallet-aura/experimental" ]

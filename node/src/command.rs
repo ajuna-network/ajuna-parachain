@@ -349,7 +349,7 @@ pub fn run() -> Result<()> {
 				#[allow(clippy::match_single_binding)]
 				match config.chain_spec.runtime()? {
 					Runtime::Default => {
-							crate::service::start_generic_aura_node(config, polkadot_config, collator_options, id, hwbench)
+							crate::service::start_generic_aura_lookahead_node(config, polkadot_config, collator_options, id, hwbench)
 								.await
 								.map(|r| r.0)
 					}

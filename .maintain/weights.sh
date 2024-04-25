@@ -3,7 +3,7 @@ set -e
 
 RUNTIME_WEIGHT_DIR=runtime/ajuna/src/weights
 COLLATOR=./target/release/ajuna-node
-CHAIN=local
+CHAIN=ajuna-rococo-local
 
 mkdir -p $RUNTIME_WEIGHT_DIR
 
