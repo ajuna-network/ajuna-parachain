@@ -514,7 +514,7 @@ impl orml_vesting::Config for Runtime {
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = EnsureSigned<AccountId>;
-	type WeightInfo = ();
+	type WeightInfo = weights::orml_vesting::WeightInfo<Runtime>;
 	type MaxVestingSchedules = frame_support::traits::ConstU32<100>;
 	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 }
