@@ -1,25 +1,15 @@
-use ajuna_runtime::{AccountId, AuraId, Signature, EXISTENTIAL_DEPOSIT};
+use crate::chain_spec_utils::{AjunaKeys, GenesisKeys, RelayChain, TestnetDevKeys, WellKnownKeys};
+use ajuna_runtime::{AccountId, AuraId, EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
-use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
-use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<(), Extensions>;
 
 const SS58_FORMAT: u32 = 1328;
-const PARA_ID: u32 = 2051;
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = staging_xcm::prelude::XCM_VERSION;
-
-/// Helper function to generate a crypto pair from seed
-pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-	TPublic::Pair::from_string(&format!("//{}", seed), None)
-		.expect("static values are valid; qed")
-		.public()
-}
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -38,23 +28,6 @@ impl Extensions {
 	}
 }
 
-type AccountPublic = <Signature as Verify>::Signer;
-
-/// Generate collator keys from seed.
-///
-/// This function's return type must always match the session keys of the chain in tuple format.
-pub fn get_collator_keys_from_seed(seed: &str) -> AuraId {
-	get_from_seed::<AuraId>(seed)
-}
-
-/// Helper function to generate an account ID from seed
-pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
-where
-	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
-{
-	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
-}
-
 /// Generate the session keys from individual elements.
 ///
 /// The input must be a tuple of individual keys (a single arg for now since we have just one key).
@@ -62,104 +35,56 @@ pub fn template_session_keys(keys: AuraId) -> ajuna_runtime::SessionKeys {
 	ajuna_runtime::SessionKeys { aura: keys }
 }
 
-pub fn development_config() -> ChainSpec {
+pub fn ajuna_chain_spec(
+	para_id: ParaId,
+	genesis_keys: GenesisKeys,
+	relay_chain: RelayChain,
+) -> ChainSpec {
+	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "AJUN".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), SS58_FORMAT.into());
 
-	ChainSpec::builder(
-		ajuna_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			// You MUST set this to the correct network!
-			para_id: PARA_ID,
-		},
-	)
-	.with_name("Ajuna Dev")
-	.with_id("ajuna-dev")
-	.with_chain_type(ChainType::Development)
-	.with_genesis_config_patch(testnet_genesis(
-		// initial collators.
-		vec![
-			(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_collator_keys_from_seed("Alice"),
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_collator_keys_from_seed("Bob"),
-			),
-		],
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			get_account_id_from_seed::<sr25519::Public>("Dave"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-		],
-		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		PARA_ID.into(),
-	))
-	.build()
-}
-
-pub fn local_testnet_config() -> ChainSpec {
-	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "AJUN".into());
-	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), SS58_FORMAT.into());
+	let (root, endowed, invulnerables, gov) = match genesis_keys {
+		GenesisKeys::Ajuna => (
+			AjunaKeys::root(),
+			vec![AjunaKeys::root()],
+			AjunaKeys::invulnerables(),
+			AjunaKeys::governance(),
+		),
+		GenesisKeys::TestnetDev => (
+			TestnetDevKeys::root(),
+			vec![TestnetDevKeys::root()],
+			TestnetDevKeys::invulnerables(),
+			TestnetDevKeys::governance(),
+		),
+		GenesisKeys::WellKnown => (
+			WellKnownKeys::root(),
+			WellKnownKeys::endowed(),
+			WellKnownKeys::invulnerables(),
+			WellKnownKeys::governance(),
+		),
+	};
 
 	#[allow(deprecated)]
 	ChainSpec::builder(
 		ajuna_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			// You MUST set this to the correct network!
-			para_id: PARA_ID,
-		},
+		Extensions { relay_chain: relay_chain.to_string(), para_id: para_id.into() },
 	)
-	.with_name("Ajuna Local Testnet")
-	.with_id("ajuna_local_testnet")
-	.with_chain_type(ChainType::Local)
+	.with_name("Ajuna")
+	.with_id(&format!("ajuna-{}", relay_chain.to_string()))
+	.with_protocol_id(relay_chain.protocol_id())
+	.with_chain_type(relay_chain.chain_type())
+	.with_properties(properties)
 	.with_genesis_config_patch(testnet_genesis(
 		// initial collators.
-		vec![
-			(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_collator_keys_from_seed("Alice"),
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_collator_keys_from_seed("Bob"),
-			),
-		],
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			get_account_id_from_seed::<sr25519::Public>("Dave"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-		],
-		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		PARA_ID.into(),
+		invulnerables,
+		endowed,
+		root,
+		gov,
+		para_id,
 	))
-	.with_protocol_id("ajuna-local")
-	.with_properties(properties)
 	.build()
 }
 
@@ -167,6 +92,7 @@ fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	root: AccountId,
+	governance_accounts: Vec<AccountId>,
 	id: ParaId,
 ) -> serde_json::Value {
 	serde_json::json!({
@@ -181,18 +107,10 @@ fn testnet_genesis(
 			"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
 		},
 		"council": {
-			"members": vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			]
+			"members": governance_accounts
 		},
 		"technicalCommittee": {
-			"members": vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			]
+			"members": governance_accounts
 		},
 		"session": {
 			"keys": invulnerables
@@ -211,4 +129,14 @@ fn testnet_genesis(
 		},
 		"sudo": { "key": Some(root) }
 	})
+}
+
+pub fn ajuna_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../../resources/ajuna/ajuna-raw.json")[..])
+}
+
+pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(
+		&include_bytes!("../../resources/ajuna-westend/ajuna-westend-raw.json")[..],
+	)
 }

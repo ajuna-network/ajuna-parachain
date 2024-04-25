@@ -13,15 +13,33 @@ use sp_runtime::traits::AccountIdConversion;
 
 use crate::{
 	chain_spec,
+	chain_spec::{ajuna_chain_spec, ajuna_config, ajuna_westend_config},
+	chain_spec_utils::{GenesisKeys, RelayChain},
 	cli::{Cli, RelayChainCli, Subcommand},
 	service::new_partial,
 };
 
+const POLKADOT_PARA_ID: u32 = 2051;
+const WESTEND_PARA_ID: u32 = 2051;
+const LOCAL_PARA_ID: u32 = 2051;
+
+// If we don't skip here, each cmd expands to 5 lines. I think we have better overview like this.
+#[rustfmt::skip]
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
-		"dev" => Box::new(chain_spec::development_config()),
-		"template-rococo" => Box::new(chain_spec::local_testnet_config()),
-		"" | "local" => Box::new(chain_spec::local_testnet_config()),
+		// live configs
+		"ajuna-kusama" => Box::new(ajuna_config()?),
+		"ajuna-westend" => Box::new(ajuna_westend_config()?),
+
+		// fresh production/testnet chain-specs based on the current rust code
+		"ajuna-kusama-fresh" => Box::new(ajuna_chain_spec(POLKADOT_PARA_ID.into(), GenesisKeys::Ajuna, RelayChain::Kusama)),
+		"ajuna-westend-fresh" => Box::new(ajuna_chain_spec(WESTEND_PARA_ID.into(), GenesisKeys::TestnetDev, RelayChain::Westend)),
+
+		// rust code based configs for a local setup
+		"ajuna-kusama-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::KusamaLocal)),
+		"ajuna-westend-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::WestendLocal)),
+		"" | "ajuna-rococo-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::RococoLocal)),
+
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
