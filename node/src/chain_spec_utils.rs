@@ -19,9 +19,9 @@ where
 pub enum GenesisKeys {
 	/// Use Ajuna production keys.
 	Ajuna,
-	/// Keys intended for test-nets like westend, or paseo.
+	/// Keys intended for testnets like westend, or paseo.
 	TestnetDev,
-	/// Use Keys from the keyring for a test setup
+	/// Use keys from the keyring for a test setup.
 	WellKnown,
 }
 
