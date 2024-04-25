@@ -17,10 +17,10 @@ where
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum GenesisKeys {
-	/// Use Bajun production keys.
+	/// Use Ajuna production keys.
 	Ajuna,
-	/// Use Bajun Dev keys, intended for test networks.
-	AjunaDev,
+	/// Keys intended for test-nets like westend, or paseo.
+	TestnetDev,
 	/// Use Keys from the keyring for a test setup
 	WellKnown,
 }
@@ -55,14 +55,13 @@ impl WellKnownKeys {
 	}
 }
 
-// Todo: add ajuna-westend-keys
-pub struct BajunDevKeys;
+/// Ajuna and Bajun share the same set of keys here.
+pub struct TestnetDevKeys;
 
-impl BajunDevKeys {
+impl TestnetDevKeys {
 	pub fn root() -> AccountId {
 		pub_sr25519("5H6WjuXTrFTpiAmr2Pohzbuj7EvBHuDNht7PSSUCCDv9u4ec").into()
 	}
-
 	pub fn invulnerables() -> Vec<(AccountId, AuraId)> {
 		vec![
 			// Col1-BUBBLEBOBBLE
@@ -82,9 +81,9 @@ impl BajunDevKeys {
 	}
 }
 
-pub struct BajunKeys;
+pub struct AjunaKeys;
 
-impl BajunKeys {
+impl AjunaKeys {
 	pub fn root() -> AccountId {
 		pub_sr25519("13EnS5vY7i1rvF7NqMniipYpqtbbUp3burkeYEEp6RvLMwGz").into()
 	}

@@ -1,4 +1,4 @@
-use crate::chain_spec_utils::{BajunDevKeys, BajunKeys, GenesisKeys, RelayChain, WellKnownKeys};
+use crate::chain_spec_utils::{AjunaKeys, GenesisKeys, RelayChain, TestnetDevKeys, WellKnownKeys};
 use ajuna_runtime::{AccountId, AuraId, EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
@@ -48,16 +48,16 @@ pub fn ajuna_chain_spec(
 
 	let (root, endowed, invulnerables, gov) = match genesis_keys {
 		GenesisKeys::Ajuna => (
-			BajunKeys::root(),
-			vec![BajunKeys::root()],
-			BajunKeys::invulnerables(),
-			BajunKeys::governance(),
+			AjunaKeys::root(),
+			vec![AjunaKeys::root()],
+			AjunaKeys::invulnerables(),
+			AjunaKeys::governance(),
 		),
-		GenesisKeys::AjunaDev => (
-			BajunDevKeys::root(),
-			vec![BajunDevKeys::root()],
-			BajunDevKeys::invulnerables(),
-			BajunDevKeys::governance(),
+		GenesisKeys::TestnetDev => (
+			TestnetDevKeys::root(),
+			vec![TestnetDevKeys::root()],
+			TestnetDevKeys::invulnerables(),
+			TestnetDevKeys::governance(),
 		),
 		GenesisKeys::WellKnown => (
 			WellKnownKeys::root(),

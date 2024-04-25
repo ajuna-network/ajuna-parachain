@@ -33,7 +33,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 
 		// fresh production/testnet chain-specs based on the current rust code.
 		"ajuna-kusama-fresh" => Box::new(ajuna_chain_spec(POLKADOT_PARA_ID.into(), GenesisKeys::Ajuna, RelayChain::Kusama)),
-		"ajuna-westend-fresh" => Box::new(ajuna_chain_spec(WESTEND_PARA_ID.into(), GenesisKeys::AjunaDev, RelayChain::Westend)),
+		"ajuna-westend-fresh" => Box::new(ajuna_chain_spec(WESTEND_PARA_ID.into(), GenesisKeys::TestnetDev, RelayChain::Westend)),
 
 		// on the spot configs
 		"ajuna-kusama-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::KusamaLocal)),
