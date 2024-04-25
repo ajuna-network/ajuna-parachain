@@ -3,6 +3,10 @@ use std::path::PathBuf;
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
+	/// Key management CLI utilities
+	#[command(subcommand)]
+	Key(sc_cli::KeySubcommand),
+
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
 
@@ -24,9 +28,7 @@ pub enum Subcommand {
 	/// Remove the whole chain.
 	PurgeChain(cumulus_client_cli::PurgeChainCmd),
 
-	/// Export the genesis head data of the parachain.
-	///
-	/// Head data is the encoded block header.
+	/// Export the genesis state of the parachain.
 	#[command(alias = "export-genesis-state")]
 	ExportGenesisHead(cumulus_client_cli::ExportGenesisHeadCommand),
 
@@ -40,7 +42,7 @@ pub enum Subcommand {
 
 	/// Try-runtime has migrated to a standalone
 	/// [CLI](<https://github.com/paritytech/try-runtime-cli>). The subcommand exists as a stub and
-	/// deprecation notice. It will be removed entirely some time after Janurary 2024.
+	/// deprecation notice. It will be removed entirely some time after January 2024.
 	TryRuntime,
 }
 
@@ -82,7 +84,7 @@ pub struct Cli {
 
 	/// Relay chain arguments
 	#[arg(raw = true)]
-	pub relay_chain_args: Vec<String>,
+	pub relaychain_args: Vec<String>,
 }
 
 #[derive(Debug)]

@@ -9,6 +9,7 @@ version.workspace    = true
 
 [dependencies]
 # General
+async-trait = { workspace = true }
 clap       = { workspace = true, features = ["std"] }
 log        = { workspace = true, features = ["std"] }
 serde      = { workspace = true, features = ["std", "derive"] }
@@ -22,7 +23,12 @@ parity-scale-codec = { workspace = true, features = ["std"] }
 # Substrate
 frame-benchmarking             = { workspace = true, features = ["std"] }
 frame-benchmarking-cli         = { workspace = true }
+frame-support                  = { workspace = true, features = ["std"] }
+frame-system-rpc-runtime-api   = { workspace = true, features = ["std"] }
+frame-try-runtime              = { workspace = true, features = ["std"] }
+pallet-transaction-payment     = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
+pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = ["std"] }
 sc-basic-authorship            = { workspace = true }
 sc-chain-spec                  = { workspace = true }
 sc-cli                         = { workspace = true }
@@ -44,12 +50,21 @@ sp-block-builder               = { workspace = true, features = ["std"] }
 sp-blockchain                  = { workspace = true }
 sp-consensus-aura              = { workspace = true, features = ["std"] }
 sp-core                        = { workspace = true, features = ["std"] }
+sp-genesis-builder             = { workspace = true, features = ["std"] }
+sp-inherents                   = { workspace = true, features = ["std"] }
+sp-io                          = { workspace = true, features = ["std"] }
 sp-keystore                    = { workspace = true, features = ["std"] }
 sp-keyring                     = { workspace = true }
+sp-offchain                    = { workspace = true, features = ["std"] }
 sp-runtime                     = { workspace = true, features = ["std"] }
+sp-session                     = { workspace = true, features = ["std"] }
+sp-version                     = { workspace = true, features = ["std"] }
+sp-std	                       = { workspace = true, features = ["std"] }
 sp-timestamp                   = { workspace = true, features = ["std"] }
+sp-transaction-pool            = { workspace = true, features = ["std"] }
 substrate-frame-rpc-system     = { workspace = true }
 substrate-prometheus-endpoint  = { workspace = true }
+substrate-state-trie-migration-rpc = { workspace = true }
 
 # Polkadot
 polkadot-cli        = { workspace = true }
@@ -62,10 +77,14 @@ cumulus-client-collator               = { workspace = true }
 cumulus-client-consensus-aura         = { workspace = true }
 cumulus-client-consensus-common       = { workspace = true }
 cumulus-client-consensus-proposer     = { workspace = true }
+cumulus-client-consensus-relay-chain  = { workspace = true }
+cumulus-client-parachain-inherent     = { workspace = true }
 cumulus-client-service                = { workspace = true }
+cumulus-primitives-aura               = { workspace = true, features = ["std"] }
 cumulus-primitives-core               = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true, features = ["std"] }
 cumulus-relay-chain-interface         = { workspace = true }
+parachains-common                     = { workspace = true, features = ["std"] }
 color-print                           = { workspace = true }
 
 # Runtime
@@ -80,6 +99,7 @@ runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
 	"frame-benchmarking-cli/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
 	"ajuna-runtime/runtime-benchmarks",
 	"polkadot-cli/runtime-benchmarks",
 	"polkadot-primitives/runtime-benchmarks",
@@ -87,6 +107,8 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 ]
 try-runtime = [
+	"frame-support/try-runtime",
+	"frame-try-runtime/try-runtime",
 	"ajuna-runtime/try-runtime",
 	"polkadot-cli/try-runtime",
 	"sp-runtime/try-runtime",

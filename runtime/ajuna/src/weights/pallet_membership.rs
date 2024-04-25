@@ -128,7 +128,7 @@ impl<T: frame_system::Config> pallet_membership::WeightInfo for WeightInfo<T> {
 	/// Storage: `Council::Prime` (r:0 w:1)
 	/// Proof: `Council::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `m` is `[1, 100]`.
-	fn reset_member(m: u32, ) -> Weight {
+	fn reset_members(m: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `207 + m * (64 ±0)`
 		//  Estimated: `4687 + m * (64 ±0)`
@@ -189,16 +189,13 @@ impl<T: frame_system::Config> pallet_membership::WeightInfo for WeightInfo<T> {
 	/// Proof: `CouncilMembership::Prime` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
 	/// Storage: `Council::Prime` (r:0 w:1)
 	/// Proof: `Council::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// The range of component `m` is `[1, 100]`.
-	fn clear_prime(m: u32, ) -> Weight {
+	fn clear_prime() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 3_700_000 picoseconds.
 		Weight::from_parts(3_989_737, 0)
 			.saturating_add(Weight::from_parts(0, 0))
-			// Standard Error: 102
-			.saturating_add(Weight::from_parts(1_020, 0).saturating_mul(m.into()))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
 }
