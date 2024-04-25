@@ -21,7 +21,7 @@ use crate::{
 
 const POLKADOT_PARA_ID: u32 = 2051;
 const WESTEND_PARA_ID: u32 = 2051;
-const LOCAL_PARA_ID: u32 = 2119;
+const LOCAL_PARA_ID: u32 = 2051;
 
 // If we don't skipp here, each cmd expands to 5 lines. I think we have better overview like this.
 #[rustfmt::skip]
