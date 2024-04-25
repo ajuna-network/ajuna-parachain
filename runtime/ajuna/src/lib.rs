@@ -833,6 +833,7 @@ mod benches {
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[frame_system, SystemBench::<Runtime>]
+		[orml_vesting, OrmlVestingBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_collective, Council]
@@ -852,6 +853,8 @@ mod benches {
 		// [pallet_treasury, Treasury] // treasury config is broken, needs fixes
 		[pallet_utility, Utility]
 	);
+	// Use this section if you want to benchmark individual pallets
+	// define_benchmarks!([orml_vesting, OrmlVestingBench::<Runtime>]);
 }
 
 impl_runtime_apis! {
@@ -1013,6 +1016,7 @@ impl_runtime_apis! {
 			use frame_support::traits::StorageInfoTrait;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
+			use orml_pallets_benchmarking::vesting::Pallet as OrmlVestingBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
@@ -1041,6 +1045,9 @@ impl_runtime_apis! {
 
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+
+			use orml_pallets_benchmarking::vesting::Pallet as OrmlVestingBench;
+			impl orml_pallets_benchmarking::vesting::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
