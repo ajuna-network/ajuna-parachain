@@ -6024,7 +6024,7 @@ dependencies = [
 [[package]]
 name = "orml-pallets-benchmarking"
 version = "0.6.0"
-source = "git+https://github.com/ajuna-network/ajuna-pallets.git?branch=cl/orml-benchmarks-v1.10.0#9f3023c29790934a02eab4b19dc299462303282c"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?branch=develop#93291ac9265a0cb38d4a2fe8770341d975113925"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
