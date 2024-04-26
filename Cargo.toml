@@ -153,6 +153,7 @@ orml-vesting = { version = "0.10.0", default-features = false }
 ajuna-runtime = { path = "runtime/ajuna" }
 
 # Ajuna Pallets
+orml-pallets-benchmarking                   = { git = "https://github.com/ajuna-network/ajuna-pallets.git", branch = "develop", default-features = false }
 
 [profile.production]
 codegen-units = 1

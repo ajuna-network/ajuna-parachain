@@ -88,6 +88,7 @@ staging-parachain-info              = { workspace = true }
 orml-vesting = { workspace = true }
 
 # Ajuna Pallets
+orml-pallets-benchmarking                 = { workspace = true, optional = true }
 
 [features]
 default = [ "std" ]
@@ -109,6 +110,7 @@ std = [
     "frame-system/std",
     "frame-try-runtime/std",
     "orml-vesting/std",
+    "orml-pallets-benchmarking?/std",
     "pallet-aura/std",
     "pallet-authorship/std",
     "pallet-balances/std",
@@ -159,6 +161,7 @@ runtime-benchmarks = [
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "orml-vesting/runtime-benchmarks",
+    "orml-pallets-benchmarking/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
