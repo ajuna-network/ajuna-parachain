@@ -50,6 +50,7 @@ jobs:
         with:
           # consistent cache across jobs
           shared-key: "ajuna-cache-cargo-debug"
+          cache-on-failure: true
 
       - run: cargo clippy --workspace --all-features --all-targets -- -D warnings
         env:
@@ -92,6 +93,7 @@ jobs:
         with:
           # consistent cache across jobs
           shared-key: "ajuna-cache-cargo-release"
+          cache-on-failure: true
 
       - run: cargo test --release --all-features --all-targets
         env:
@@ -136,6 +138,7 @@ jobs:
         with:
           # consistent cache across jobs
           shared-key: "ajuna-cache-zombienet"
+          cache-on-failure: true
 
       - name: Build and copy collar binary to zombienet binaries
         run: |
