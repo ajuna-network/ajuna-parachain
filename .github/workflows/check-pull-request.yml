@@ -21,13 +21,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CARGO_ARGS: ${{ github.ref == 'refs/heads/develop' && '--release' || '' }}
   CARGO_TERM_COLOR: always
-  SKIP_WASM_BUILD: 1
 
 jobs:
   fmt:
-    if: ${{ !startsWith(github.head_ref, 'release/') }}
     name: Rustfmt
     runs-on: ubuntu-latest
     container:
@@ -40,7 +37,6 @@ jobs:
       - run: cargo +nightly fmt --all -- --check
 
   lint:
-    if: ${{ !startsWith(github.head_ref, 'release/') }}
     name: Clippy
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -48,39 +44,103 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./.github/scripts/free_disk_space.sh
       - run: sudo apt-get install -y protobuf-compiler
-      - uses: actions/cache@v4
+
+      - name: Fetch cache
+        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-lint-
-      - run: cargo clippy --workspace --all-features --all-targets ${{ env.CARGO_ARGS }} -- -D warnings
+          # consistent cache across jobs
+          shared-key: "ajuna-cache-cargo-debug"
+
+      - run: cargo clippy --workspace --all-features --all-targets -- -D warnings
+        env:
+          SKIP_WASM_BUILD: 1
+
+  cargo-zepter:
+    name: Cargo Zepter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install stable Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Install Zepter
+        run: cargo install --locked -q zepter && zepter --version
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Don't clone historic commits.
+
+      - name: Check features
+        run: zepter run check
 
   test:
-    if: ${{ !startsWith(github.head_ref, 'release/') }}
-    name: Test
+    name: Cargo test (all features)
     runs-on: ubuntu-latest
     continue-on-error: false
-    strategy:
-      matrix:
-        runtime:
-          - ajuna-runtime
+
     steps:
       - uses: actions/checkout@v4
       - run: ./.github/scripts/free_disk_space.sh
       - run: sudo apt-get install -y protobuf-compiler
-      - uses: actions/cache@v4
+
+      - name: Fetch cache
+        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-test-${{ matrix.runtime }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-test-${{ matrix.runtime }}-
-      - run: cargo test --all-features --all-targets ${{ env.CARGO_ARGS }} -p ${{ matrix.runtime }}
+          # consistent cache across jobs
+          shared-key: "ajuna-cache-cargo-release"
+
+      - run: cargo test --release --all-features --all-targets
+        env:
+          RUSTFLAGS: "-C debug-assertions -D warnings"
+          SKIP_WASM_BUILD: 1
+
+  zombienet-tests:
+    name: Zombienet tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        binary: [ ajuna-node ]
+    env:
+      ZOMBIENET_VERSION: v1.3.82
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create testing directories
+        run: mkdir -p zombienet-tests/bin
+
+      - name: Setup zombienet binaries
+        run: |
+          cd zombienet-tests/bin
+          wget -q "https://github.com/paritytech/zombienet/releases/download/${{ env.ZOMBIENET_VERSION }}/zombienet-linux-x64"
+          chmod +x zombienet-linux-x64
+          mv zombienet-linux-x64 zombienet
+          ./zombienet setup polkadot -y || :
+          ./zombienet version
+
+      - name: Copy network config and tests
+        run: cp .maintain/zombienet-* zombienet-tests/
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: "3.6.1"
+
+      - name: Fetch cache
+        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        with:
+          # consistent cache across jobs
+          shared-key: "ajuna-cache-zombienet"
+
+      - name: Build and copy collar binary to zombienet binaries
+        run: |
+          cargo build --release
+          cp target/release/${{ matrix.binary }} zombienet-tests/bin/collator
+
+      - name: Run zombienet tests
+        run: ./zombienet-tests/bin/zombienet -l "text" -p native test ./zombienet-tests/zombienet-tests.zndsl

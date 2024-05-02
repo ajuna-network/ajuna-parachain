@@ -35,7 +35,7 @@ jobs:
           echo "runtime=$TASKS" >> $GITHUB_OUTPUT
 
   check-migrations:
-    needs: [runtime-matrix]
+    needs: [ runtime-matrix ]
     continue-on-error: true
     runs-on: ubuntu-latest
     strategy:
@@ -58,12 +58,32 @@ jobs:
       - name: Install rust toolchain from toolchain.toml
         run: rustup show
 
+      - name: Fetch cache
+        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        with:
+          shared-key: "check-migrations-cache"
+
       - name: Build ${{ matrix.runtime.name }}
         run: |
-          cargo build --release -p ${{ matrix.runtime.package }} --features try-runtime -q --locked
+          cargo build --release -p ${{ matrix.runtime.package }} --features try-runtime --locked
+
+      - name: Build EXTRA_ARGS
+        run: |
+          EXTRA_FLAGS=""
+
+          # Disable the spec version check when we dont want to release.
+          if [[ $GITHUB_REF =~ ^refs/heads/release/.*$ ]]; then
+            echo "On a release branch"
+          else
+            EXTRA_FLAGS+=" --disable-spec-version-check"
+            echo "Not on a release branch"
+          fi
+
+          echo "Flags: $EXTRA_FLAGS"
+
+          echo "EXTRA_ARGS=$EXTRA_FLAGS" >> $GITHUB_ENV          
 
       - name: Check migrations
-        # Todo: enable spec-version-check dynamically if we are releasing
         run: |
           PACKAGE_NAME=${{ matrix.runtime.package }}
           RUNTIME_BLOB_NAME=$(echo $PACKAGE_NAME | sed 's/-/_/g').compact.compressed.wasm
@@ -72,5 +92,5 @@ jobs:
           ./try-runtime \
             --runtime $RUNTIME_BLOB_PATH \
             on-runtime-upgrade --checks=pre-and-post \
-            --disable-spec-version-check --disable-idempotency-checks \
+            ${{ env.EXTRA_ARGS }} --disable-idempotency-checks \
             live --uri ${{ matrix.runtime.uri }}
