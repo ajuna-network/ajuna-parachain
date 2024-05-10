@@ -137,6 +137,12 @@ pub fn ajuna_config() -> Result<ChainSpec, String> {
 
 pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(
-		&include_bytes!("../../resources/ajuna-westend/ajuna-westend-raw.json")[..],
+		&include_bytes!("../../resources/ajuna/westend/ajuna-westend-raw.json")[..],
+	)
+}
+
+pub fn ajuna_paseo_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(
+		&include_bytes!("../../resources/ajuna/paseo/ajuna-paseo-raw.json")[..],
 	)
 }
