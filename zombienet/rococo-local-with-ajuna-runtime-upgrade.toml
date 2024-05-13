@@ -1,0 +1,67 @@
+# Zombienet setup designed to test the runtime upgrade and its migration by refering to an old chain-spec.json.
+#
+# The upgrade can be done via polkadot-js/apps:
+#   1.  Create chain-spec with the old collator-node containing our current production network with:
+#       `./scripts/dump_wasm_state_and_spec.sh <desired_chain>` and copy it into this directory.
+#   2.  Create new was runtime with the new collator with `./scripts/dump_wasm_state_and_spec.sh <desired_chain>`
+#   3.  Migrate storage from production chain to local setup with https://github.com/ajuna-network/Ajuna.StorageTools/blob/main/Ajuna.StorageTools/Program.cs
+#   4.  Call: `sudo.call(parachainSystem.(authorizeUgrade(...))`
+#   5.  Call: `parachainSystem.enactAuthorizedUpgrade()`
+#   6.  Wait until the code is applied.
+
+[settings]
+timeout = 10000
+
+[relaychain]
+default_command = "~/bin/polkadot"
+default_args = [ "-lparachain=debug,xcm=trace" ]
+chain = "rococo-local"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+ws_port = 9999
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+ws_port = 9988
+
+[[relaychain.nodes]]
+name = "charlie"
+validator = true
+ws_port = 9977
+
+[[parachains]]
+id = 2000
+addToGenesis = true
+cumulus_based = true
+# I use this to test the runtime upgrade. Run the new collators
+# but use the old chain spec that has been generated with a node
+# based on the current production runtime.
+# Currently: v203.
+#
+# Note: this is not at plain v203 chain-spec because creating chain-specs
+# was broken due to missing std features. This commit fixed that, and with
+# this commit we have created the chain-spec: d9ea578fe6d9fb47e093a01235e4d74edd6c931b
+chain_spec_path = "zombienet/ajuna-rococo-localv203.json"
+
+[parachains.collator]
+name = "ajuna-collator"
+command = "~/bin/ajuna-node-v203-d9ea578fe6d9fb47e093a01235e4d74edd6c931b"
+ws_port = 9955
+rpc_port = 9956
+
+[[parachains.collators]]
+name = "ajuna-collator-1"
+validator = true
+command = "~/bin/ajuna-node-v400"
+args = ["-lxcm=trace,runtime=debug"]
+ws_port = 9954
+
+[[parachains.collators]]
+name = "ajuna-collator-2"
+validator = true
+command = "~/bin/ajuna-node-v400"
+args = ["-lxcm=trace,runtime=debug"]
+ws_port = 9955
