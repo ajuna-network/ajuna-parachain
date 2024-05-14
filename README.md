@@ -93,5 +93,5 @@ pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
 
   ```bash
   # parachain with Ajuna runtime
-  docker build -f docker/Dockerfile -t ajuna/parachain-ajuna:latest . --build-arg locked --build-arg no-default-features --build-arg bin=ajuna-para
+  docker build -f docker/Dockerfile -t ajuna/parachain-ajuna:latest . --build-arg bin=ajuna-node
   ```
