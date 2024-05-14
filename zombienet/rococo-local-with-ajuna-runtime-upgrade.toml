@@ -42,8 +42,7 @@ cumulus_based = true
 # Currently: v203.
 #
 # Note: this is not at plain v203 chain-spec because creating chain-specs
-# was broken due to missing std features. This commit fixed that, and with
-# this commit we have created the chain-spec: d9ea578fe6d9fb47e093a01235e4d74edd6c931b
+# was broken. It is based on this branch: https://github.com/ajuna-network/ajuna-parachain/tree/cl/fix-chainspec-generation-v203
 chain_spec_path = "zombienet/ajuna-rococo-localv203.json"
 
 [parachains.collator]
