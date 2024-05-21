@@ -42,11 +42,6 @@ pub type EnsureRootOrMoreThanHalfTechnicalCommittee = EitherOfDiverse<
 	EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 1, 2>,
 >;
 
-pub type EnsureRootOrAllTechnicalCommittee = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 1, 1>,
->;
-
 /// Council collective instance declaration.
 ///
 /// The council primarily serves to optimize and balance the inclusive referendum system
