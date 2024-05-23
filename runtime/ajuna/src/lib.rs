@@ -22,6 +22,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod assets;
 mod gov;
 mod proxy_type;
 mod weights;
@@ -29,7 +30,7 @@ pub mod xcm_config;
 
 use crate::gov::EnsureRootOrMoreThanHalfCouncil;
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
-use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use cumulus_primitives_core::AggregateMessageOrigin;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
@@ -53,7 +54,7 @@ use frame_support::{
 	traits::{
 		fungible::HoldConsideration,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, Contains, LinearStoragePrice, TransformOrigin,
+		ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -70,7 +71,6 @@ use pallet_identity::legacy::IdentityInfo;
 use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
-use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -83,11 +83,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 // XCM Imports
 use staging_xcm::latest::prelude::BodyId;
 
-use parachains_common::{
-	message_queue::{NarrowOriginToSibling, ParaIdToSibling},
-	BlockNumber, Hash, Header,
-};
-use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
+use parachains_common::{message_queue::NarrowOriginToSibling, BlockNumber, Hash, Header};
 use sp_runtime::traits::{IdentifyAccount, IdentityLookup, Verify};
 
 parameter_types! {
@@ -344,7 +340,11 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::CouncilMembership(_) |
 			RuntimeCall::TechnicalCommittee(_) |
 			RuntimeCall::TechnicalCommitteeMembership(_) |
-			RuntimeCall::Democracy(_) => true
+			RuntimeCall::Democracy(_) => true,
+			RuntimeCall::XTokens(_) => true,
+			RuntimeCall::OrmlXcm(_) => true,
+			RuntimeCall::Assets(_) => true,
+			RuntimeCall::AssetRegistry(_) => true
 		}
 	}
 }
@@ -552,18 +552,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 impl staging_parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
-
-impl cumulus_pallet_xcmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
-	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
-	type ControllerOrigin = EnsureRoot<AccountId>;
-	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
-	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
-	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
-}
 
 parameter_types! {
 	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
@@ -809,6 +797,8 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		// DmpQueue: cumulus_pallet_dmp_queue = 33,
 		MessageQueue: pallet_message_queue = 34,
+		XTokens: orml_xtokens = 35,
+		OrmlXcm: orml_xcm = 36,
 
 		// Governance
 		Sudo: pallet_sudo = 40,
@@ -822,6 +812,10 @@ construct_runtime!(
 		// type TechnicalCommitteeMembershipInstance = pallet_membership::Instance1;
 		TechnicalCommitteeMembership: pallet_membership::<Instance1> = 45,
 		Democracy: pallet_democracy = 46,
+
+		// Assets related stuff
+		Assets: pallet_assets::<Instance1> = 90,
+		AssetRegistry: pallet_asset_registry = 91,
 	}
 );
 
