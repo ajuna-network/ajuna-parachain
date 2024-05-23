@@ -15,7 +15,21 @@ import-storage:
     Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
   System:
     Account: # Give our dev accounts some funds
-      - - - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+      - - - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
         - providers: 1
           data:
             free: 1000000000000000
+      - - - 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+        - providers: 1
+          data:
+            free: 1000000000000000
+      - - - 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y # Charlie
+        - providers: 1
+          data:
+            free: 1000000000000000
+  Council:
+    Members:
+      - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  TechnicalCommittee:
+    Members:
+      - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
