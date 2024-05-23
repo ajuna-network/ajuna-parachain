@@ -84,7 +84,7 @@ parameter_types! {
 	MaxEncodedLen,
 )]
 pub enum CurrencyId {
-	BAJU,
+	AJUN,
 }
 
 /// Converts a Locaction into a CurrencyId. Used by XCMP LocalAssetTransactor for asset
@@ -96,12 +96,12 @@ impl Convert<Location, Option<CurrencyId>> for CurrencyIdConvert {
 
 		match location.unpack() {
 			// that's how xTokens with Karura, Bifrost, Moonriver refers to AJUN
-			(1, [Parachain(id), BAJU_GENERAL_KEY]) if *id == self_para_id => Some(CurrencyId::BAJU),
+			(1, [Parachain(id), AJUN_GENERAL_KEY]) if *id == self_para_id => Some(CurrencyId::AJUN),
 			// that's how the Asset Hub refers to AJUN
-			(1, [Parachain(id)]) if *id == self_para_id => Some(CurrencyId::BAJU),
+			(1, [Parachain(id)]) if *id == self_para_id => Some(CurrencyId::AJUN),
 			// same for local location spec. we don't care if parents is 0 or 1
-			(0, [BAJU_GENERAL_KEY]) => Some(CurrencyId::BAJU),
-			(0, []) => Some(CurrencyId::BAJU),
+			(0, [AJUN_GENERAL_KEY]) => Some(CurrencyId::AJUN),
+			(0, []) => Some(CurrencyId::AJUN),
 			_ => None,
 		}
 	}
@@ -318,7 +318,7 @@ pub type Traders = (
 parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 	pub NativePerSecond: (AssetId, u128,u128) = (Location::new(0,Here).into(), AJUN * 70, 0u128);
-	pub NativeAliasPerSecond: (AssetId, u128,u128) = (Location::new(0,[BAJU_GENERAL_KEY]).into(), AJUN * 70, 0u128);
+	pub NativeAliasPerSecond: (AssetId, u128,u128) = (Location::new(0,[AJUN_GENERAL_KEY]).into(), AJUN * 70, 0u128);
 	pub RelayNativePerSecond: (AssetId, u128,u128) = (Location::new(1,Here).into(), AJUN * 70, 0u128);
 	// Weight for one XCM operation.
 	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000u64, DEFAULT_PROOF_SIZE);
@@ -457,19 +457,19 @@ parameter_type_with_key! {
 }
 
 const fn baju_general_key() -> Junction {
-	const BAJU_KEY: [u8; 32] = *b"BAJU\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-	GeneralKey { length: 4, data: BAJU_KEY }
+	const AJUN_KEY: [u8; 32] = *b"AJUN\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+	GeneralKey { length: 4, data: AJUN_KEY }
 }
-const BAJU_GENERAL_KEY: Junction = baju_general_key();
+const AJUN_GENERAL_KEY: Junction = baju_general_key();
 
 /// Converts a CurrencyId into a Location, used by xtoken for XCMP.
 pub struct CurrencyIdConvert;
 impl Convert<CurrencyId, Option<Location>> for CurrencyIdConvert {
 	fn convert(id: CurrencyId) -> Option<Location> {
 		match id {
-			CurrencyId::BAJU => Some(Location::new(
+			CurrencyId::AJUN => Some(Location::new(
 				1,
-				[Parachain(ParachainInfo::parachain_id().into()), BAJU_GENERAL_KEY],
+				[Parachain(ParachainInfo::parachain_id().into()), AJUN_GENERAL_KEY],
 			)),
 		}
 	}
@@ -478,7 +478,7 @@ impl Convert<CurrencyId, Option<Location>> for CurrencyIdConvert {
 parameter_types! {
 	pub SelfReserveAlias: Location = Location::new(
 		0,
-		[BAJU_GENERAL_KEY]
+		[AJUN_GENERAL_KEY]
 	);
 	// This is how we are going to detect whether the asset is a Reserve asset
 	pub SelfLocation: Location = Location::here();
