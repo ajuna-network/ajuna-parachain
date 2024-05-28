@@ -95,9 +95,9 @@ pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
   # parachain with Ajuna runtime
   docker build -f docker/Dockerfile -t ajuna/parachain-ajuna:latest . --build-arg bin=ajuna-node
   ```
-- Ajuna specific parameters:
- RPC
-  ```bash
+- Ajuna specific parameters:  
+   - RPC
+   ```bash
           - --name=ajuna-rpc
           - --base-path=/data/ajuna
           - --chain=/ajuna/ajuna-raw.json
@@ -110,5 +110,5 @@ pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
           - --bootnodes=/ip4/178.62.47.42/tcp/30333/ws/p2p/12D3KooWQSuL51Ki3sydbCwPuvnFx6iNQthTbSjTts3zKMWt1bz8
           - --rpc-max-connections=50000
           - --prometheus-external
-          - --telemetry-url={{ telemetry_url }}
-  ```
+          - --telemetry-url="wss://telemetry.polkadot.io/submit 0"
+   ```
