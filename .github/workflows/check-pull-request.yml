@@ -14,6 +14,10 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]
+      # Matches tags containing an arbitrary suffix starting with '-'.
+      - v[0-9]+.[0-9]+.[0-9]+-*
 
 # Ensures only one build is run per branch, unless pushing to develop
 concurrency:
@@ -42,11 +46,12 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v4
-      - run: ./.github/scripts/free_disk_space.sh
-      - run: sudo apt-get install -y protobuf-compiler
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
 
       - name: Fetch cache
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@v2
         with:
           # consistent cache across jobs
           shared-key: "ajuna-cache-cargo-debug"
@@ -71,12 +76,84 @@ jobs:
         run: cargo install --locked -q zepter && zepter --version
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Don't clone historic commits.
 
       - name: Check features
         run: zepter run check
+
+  build-runtimes:
+    name: Build Runtimes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [ "ajuna" ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache target dir
+        uses: actions/cache@v4
+        with:
+          save-always: true
+          path: "${{ github.workspace }}/runtime/${{ matrix.runtime }}/target"
+          key: srtool-target-${{ matrix.runtime }}-${{ github.sha }}
+          restore-keys: |
+            srtool-target-${{ matrix.runtime }}-
+            srtool-target-
+
+      - name: Build ${{ matrix.runtime }}
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.9.2
+        with:
+          image: paritytech/srtool
+          chain: ${{ matrix.runtime }}
+          runtime_dir: runtime/${{ matrix.runtime }}
+          profile: "production"
+
+      - name: Store ${{ matrix.runtime }} srtool digest to disk
+        run: |
+          echo '${{ steps.srtool_build.outputs.json }}' | jq > ${{ matrix.runtime }}_srtool_output.json
+
+      - name: Upload ${{ matrix.runtime }} srtool json
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.runtime }}-srtool-json
+          path: ${{ matrix.runtime }}_srtool_output.json
+
+      - name: Upload  ${{ matrix.runtime }}-runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.runtime }}-runtime-${{ github.sha }}
+          path: |
+            ${{ steps.srtool_build.outputs.wasm_compressed }}
+
+  build-binary:
+    name: Build Release Binary
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+
+      - name: Fetch cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          # consistent cache across jobs
+          shared-key: "ajuna-cache-cargo-release"
+          cache-on-failure: true
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Upload ajuna-node
+        uses: actions/upload-artifact@v4
+        with:
+          name: ajuna-node-${{ github.sha }}
+          path: target/release/ajuna-node
 
   test:
     name: Cargo test (all features)
@@ -85,14 +162,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - run: ./.github/scripts/free_disk_space.sh
-      - run: sudo apt-get install -y protobuf-compiler
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
 
       - name: Fetch cache
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@v2
         with:
           # consistent cache across jobs
-          shared-key: "ajuna-cache-cargo-release"
+          shared-key: "ajuna-cache-cargo-test"
           cache-on-failure: true
 
       - run: cargo test --release --all-features --all-targets
@@ -103,6 +181,7 @@ jobs:
   zombienet-tests:
     name: Zombienet tests
     runs-on: ubuntu-latest
+    needs: [ build-binary ]
     strategy:
       matrix:
         binary: [ ajuna-node ]
@@ -128,22 +207,123 @@ jobs:
       - name: Copy network config and tests
         run: cp .maintain/zombienet-* zombienet-tests/
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+      - uses: actions/download-artifact@v4
         with:
-          version: "3.6.1"
+          name: ajuna-node-${{ github.sha }}
 
-      - name: Fetch cache
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
-        with:
-          # consistent cache across jobs
-          shared-key: "ajuna-cache-zombienet"
-          cache-on-failure: true
-
-      - name: Build and copy collar binary to zombienet binaries
+      - name: 'Setup Ajuna-Node'
         run: |
-          cargo build --release
-          cp target/release/${{ matrix.binary }} zombienet-tests/bin/collator
+          chmod +x ./ajuna-node
+          cp ./ajuna-node zombienet-tests/bin/collator
 
       - name: Run zombienet tests
         run: ./zombienet-tests/bin/zombienet -l "text" -p native test ./zombienet-tests/zombienet-tests.zndsl
+
+  publish-release:
+    name: Publish Release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    needs: [ build-binary ]
+    outputs:
+      release_url: ${{ steps.create-release.outputs.html_url }}
+      asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Ajuna Collator
+        uses: actions/download-artifact@v4
+        with:
+          name: ajuna-node-${{ github.sha }}
+
+      - name: Download srtool json output
+        uses: actions/download-artifact@v4
+
+      - name: Archive context output
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-context
+          path: |
+            **/*_srtool_output.json
+
+      # Adapted version from fellowship runtimes
+      - name: Add runtime info to changelog
+        run: |
+          CONTEXT=$(find . -name '*_srtool_output.json')
+          SRTOOL() { <$(<<<$CONTEXT head -n1) jq -r .$1; }
+          WASM() { <${JSON} jq -r ".runtimes.compressed.subwasm.$1"; }
+
+          touch DRAFT
+
+          tee -a DRAFT <<-EOF
+          # Runtime info
+          *These runtimes were built with **$(SRTOOL rustc)** using **[$(SRTOOL gen)](https://github.com/paritytech/srtool)***
+
+          \`\`\`sh
+          srtool build
+                 --root --profile production
+                 --package CRATE_NAME --runtime-dir PATH_TO_CRATE
+          \`\`\`
+          EOF
+
+          for JSON in $(<<<$CONTEXT sort -sr)
+          do
+          SPEC_NAME=$(WASM 'core_version.specName')
+
+          HEADING=$(WASM 'core_version.specName / "-" | map(. / "" | first |= ascii_upcase | add) | join(" ")')
+
+          tee -a DRAFT <<-EOF
+
+          ## $HEADING
+          ~~~
+          🏋️ Runtime Size:           $(numfmt --to iec-i --format "%.2f" $(WASM size)) ($(WASM size) bytes)
+          🗜 Compressed:              $(WASM 'compression | if .compressed then "Yes: \(1 - .size_compressed / .size_decompressed | . * 10000 | round / 100)%" else "No" end')
+          🔥 Core Version:           $(WASM 'core_version | "\(.specName)-\(.specVersion) \(.implName)-\(.implVersion).tx\(.transactionVersion).au\(.authoringVersion)"')
+          🎁 Metadata version:       V$(WASM metadata_version)
+          🗳️ Blake2-256 hash:        $(WASM blake2_256)
+          📦 IPFS:                   $(WASM ipfs_hash)
+          ~~~
+          EOF
+          done
+
+      - name: Release
+        id: create-release
+        uses: softprops/action-gh-release@v2
+        # Generate relase notes with commit history and append srtool output from above.
+        with:
+          draft: true
+          generate_release_notes: true
+          append_body: true
+          body_path: DRAFT
+          files: |
+            ajuna-node
+
+  publish-runtimes:
+    name: Publish Runtimes
+    needs: [ publish-release ]
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [ ajuna ]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Get runtime info
+        env:
+          JSON: release-notes-context/${{ matrix.runtime }}-srtool-json/${{ matrix.runtime }}_srtool_output.json
+        run: |
+          >>$GITHUB_ENV echo SPEC=$(<${JSON} jq -r .runtimes.compact.subwasm.core_version.specVersion)
+
+      - name: Upload compressed ${{ matrix.runtime }} v${{ env.SPEC }} wasm
+        uses: shogo82148/actions-upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-release.outputs.asset_upload_url }}
+          asset_path: "${{ matrix.runtime }}-runtime-${{ github.sha }}/${{ matrix.runtime }}_runtime.compact.compressed.wasm"
+          asset_name: ${{ matrix.runtime }}_runtime-v${{ env.SPEC }}.compact.compressed.wasm
+          asset_content_type: application/wasm
