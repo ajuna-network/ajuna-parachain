@@ -1,33 +1,35 @@
-# Builder
-FROM docker.io/library/rust:1.74-bullseye as builder
+FROM phusion/baseimage:jammy-1.0.1
+LABEL description="This is the 2nd stage: a very small image where we copy the node binary."
 
-ARG bin
+RUN apt-get update && \
+apt-get install -y jq
 
-COPY . /ajuna
-WORKDIR /ajuna
 
-RUN rustup component add rust-src
+RUN mv /usr/share/ca* /tmp && \
+	rm -rf /usr/share/*  && \
+	mv /tmp/ca-certificates /usr/share/ && \
+	useradd -m -u 1000 -U -s /bin/sh -d /ajuna ajuna && \
+	mkdir -p /ajuna/.local/share/ajuna-node && \
+	chown -R ajuna:ajuna /ajuna/.local && \
+	ln -s /ajuna/.local/share/ajuna-node /data
 
-RUN apt update && apt install -y git clang curl libssl-dev llvm libudev-dev cmake protobuf-compiler
-RUN cargo build --locked --release --no-default-features --bin ${bin}
+COPY ajuna-node /usr/local/bin
+COPY ./scripts/healthcheck9933.sh /usr/local/bin
 
-# Runner
-FROM docker.io/library/ubuntu:22.04
+RUN chmod +x /usr/local/bin/ajuna-node
+RUN chmod +x /usr/local/bin/healthcheck9933.sh
 
-ARG bin
+# checks
+RUN ldd /usr/local/bin/ajuna-node && \
+	/usr/local/bin/ajuna-node --version
 
-COPY --from=builder /ajuna/target/release/${bin} /usr/local/bin/ajuna
-COPY --from=builder /ajuna/resources/ /
-
-RUN useradd -m -u 1000 -U -s /bin/sh -d /ajuna ajuna && \
-  mkdir -p /data /ajuna/.local/share && \
-  chown -R ajuna:ajuna /data  && \
-  ln -s /data /ajuna/.local/share/ajuna && \
-  rm -rf /usr/sbin && \
-  ajuna --version
+# Shrinking
+#RUN rm -rf /usr/lib/python* && \
+#	rm -rf /usr/bin /usr/sbin /usr/share/man
 
 USER ajuna
 
 EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
-ENTRYPOINT ["/usr/local/bin/ajuna"]
+
+ENTRYPOINT ["/usr/local/bin/ajuna-node"]

@@ -1,0 +1,74 @@
+name: Publish Docker image for new releases
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release-docker:
+    name: Push to Dockerhub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download bajun-node from release
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          version: "tags/${{ github.event.release.tag_name }}"
+          file: "ajuna-node"
+          target: "ajuna-node"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: .
+          file: docker/Dockerfile
+          tags: |
+            ajuna/parachain-ajuna:latest
+            ajuna/parachain-ajuna:${{ github.event.release.tag_name }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+  release-onf:
+    needs: release-docker
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [ ajuna ]
+        include:
+          - runtime: ajuna
+            network_key: ONF_AJUNA_NETWORK_KEY
+    steps:
+      - uses: OnFinality-io/action-onf-release@v1
+        with:
+          onf-access-key: ${{ secrets.ONF_ACCESS_KEY }}
+          onf-secret-key: ${{ secrets.ONF_SECRET_KEY }}
+          onf-workspace-id: ${{ secrets.ONF_WORKSPACE_ID }}
+          onf-network-key: ${{ secrets[matrix.network_key] }}
+          onf-sub-command: image
+          onf-action: add
+          image-version: ${{ github.event.release.tag_name }}
