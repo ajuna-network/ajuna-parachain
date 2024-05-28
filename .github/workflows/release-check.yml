@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        runtime: [ bajun ]
+        runtime: [ ajuna ]
     steps:
       - uses: actions/checkout@v4
         with:
