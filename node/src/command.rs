@@ -20,7 +20,7 @@ use crate::{
 	chain_spec_utils::{GenesisKeys, RelayChain},
 	cli::{Cli, RelayChainCli, Subcommand},
 	fake_runtime_api::aura::RuntimeApi,
-	service::{new_partial, Block},
+	service::{new_partial, Block, Hash},
 };
 use cumulus_client_service::storage_proof_size::HostFunctions as ReclaimHostFunctions;
 use cumulus_primitives_core::ParaId;
@@ -261,9 +261,8 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::ExportGenesisHead(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| {
-				construct_partials!(config, |partials| cmd.run(partials.client))
-			})
+			runner
+				.sync_run(|config| construct_partials!(config, |partials| cmd.run(partials.client)))
 		},
 		Some(Subcommand::ExportGenesisWasm(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -279,7 +278,7 @@ pub fn run() -> Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) =>
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| cmd.run::<sp_runtime::traits::HashingFor<Block>, ReclaimHostFunctions>(config))
+						runner.sync_run(|config| cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, ReclaimHostFunctions>(Some(config.chain_spec)))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
@@ -313,18 +312,18 @@ pub fn run() -> Result<()> {
 				_ => Err("Benchmarking sub-command unsupported".into()),
 			}
 		},
-		Some(Subcommand::TryRuntime) => Err("The `try-runtime` subcommand has been migrated to a standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer being maintained here and will be removed entirely some time after January 2024. Please remove this subcommand from your runtime and use the standalone CLI.".into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;
 			let collator_options = cli.run.collator_options();
 
 			runner.run_node_until_exit(|config| async move {
-				let hwbench = (!cli.no_hardware_benchmarks).then_some(
-					config.database.path().map(|database_path| {
+				let hwbench = (!cli.no_hardware_benchmarks)
+					.then_some(config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(database_path);
 						sc_sysinfo::gather_hwbench(Some(database_path))
-					})).flatten();
+					}))
+					.flatten();
 
 				let para_id = chain_spec::Extensions::try_get(&*config.chain_spec)
 					.map(|e| e.para_id)
@@ -338,7 +337,9 @@ pub fn run() -> Result<()> {
 				let id = ParaId::from(para_id);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::AccountId>::into_account_truncating(
+						&id,
+					);
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
@@ -349,18 +350,52 @@ pub fn run() -> Result<()> {
 				info!("Parachain Account: {}", parachain_account);
 				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
 
-				// We only have one Runtime variant, but maintenance is easier if we use the same code structure.
-				#[allow(clippy::match_single_binding)]
-				match config.chain_spec.runtime()? {
-					Runtime::Default => {
-							crate::service::start_generic_aura_lookahead_node(config, polkadot_config, collator_options, id, hwbench)
-								.await
-								.map(|r| r.0)
-					}
-					.map_err(Into::into),
+				match polkadot_config.network.network_backend {
+					sc_network::config::NetworkBackendType::Libp2p =>
+						start_node::<sc_network::NetworkWorker<_, _>>(
+							config,
+							polkadot_config,
+							collator_options,
+							id,
+							hwbench,
+						)
+						.await,
+					sc_network::config::NetworkBackendType::Litep2p =>
+						start_node::<sc_network::Litep2pNetworkBackend>(
+							config,
+							polkadot_config,
+							collator_options,
+							id,
+							hwbench,
+						)
+						.await,
 				}
 			})
 		},
+	}
+}
+
+async fn start_node<Network: sc_network::NetworkBackend<Block, Hash>>(
+	config: sc_service::Configuration,
+	polkadot_config: sc_service::Configuration,
+	collator_options: cumulus_client_cli::CollatorOptions,
+	id: ParaId,
+	hwbench: Option<sc_sysinfo::HwBench>,
+) -> Result<sc_service::TaskManager> {
+	// We only have one Runtime variant, but maintenance is easier if we use the same
+	// code structure.
+	#[allow(clippy::match_single_binding)]
+	match config.chain_spec.runtime()? {
+		Runtime::Default => crate::service::start_generic_aura_lookahead_node::<Network>(
+			config,
+			polkadot_config,
+			collator_options,
+			id,
+			hwbench,
+		)
+		.await
+		.map(|r| r.0)
+		.map_err(Into::into),
 	}
 }
 
