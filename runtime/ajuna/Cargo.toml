@@ -22,6 +22,7 @@ parity-scale-codec = { workspace = true }
 scale-info         = { workspace = true, features = [ "derive" ] }
 
 # Substrate
+assets-common                              = { workspace = true }
 frame-benchmarking                         = { workspace = true, optional = true }
 frame-executive                            = { workspace = true }
 frame-support                              = { workspace = true }
@@ -29,6 +30,7 @@ frame-system                               = { workspace = true }
 frame-system-benchmarking                  = { workspace = true, optional = true }
 frame-system-rpc-runtime-api               = { workspace = true }
 frame-try-runtime                          = { workspace = true, optional = true }
+pallet-assets                              = { workspace = true }
 pallet-aura                                = { workspace = true }
 pallet-authorship                          = { workspace = true }
 pallet-balances                            = { workspace = true }
@@ -85,14 +87,23 @@ parachains-common                   = { workspace = true }
 staging-parachain-info              = { workspace = true }
 
 # ORML
+orml-traits = { workspace = true }
 orml-vesting = { workspace = true }
+orml-xcm = { workspace = true }
+orml-xcm-support = { workspace = true }
+orml-xtokens = { workspace = true }
 
 # Ajuna Pallets
 orml-pallets-benchmarking                 = { workspace = true, optional = true }
 
+# integritee pallets
+pallet-asset-registry = { workspace = true }
+xcm-primitives = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [
+    "assets-common/std",
     "parity-scale-codec/std",
     "log/std",
     "scale-info/std",
@@ -112,8 +123,13 @@ std = [
     "frame-system-rpc-runtime-api/std",
     "frame-system/std",
     "frame-try-runtime/std",
+    "orml-traits/std",
     "orml-vesting/std",
+    "orml-xcm/std",
+    "orml-xcm-support/std",
+    "orml-xtokens/std",
     "orml-pallets-benchmarking?/std",
+    "pallet-assets/std",
     "pallet-aura/std",
     "pallet-authorship/std",
     "pallet-balances/std",
@@ -156,21 +172,27 @@ std = [
     "staging-xcm/std",
     "staging-xcm-builder/std",
     "staging-xcm-executor/std",
+    # integritee
+    "pallet-asset-registry/std",
+    "xcm-primitives/std",
 ]
 
 runtime-benchmarks = [
-    "cumulus-primitives-core/runtime-benchmarks",
-    "cumulus-primitives-utility/runtime-benchmarks",
+    "assets-common/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
     "cumulus-pallet-session-benchmarking/runtime-benchmarks",
     "cumulus-pallet-xcmp-queue/runtime-benchmarks",
+    "cumulus-primitives-core/runtime-benchmarks",
+    "cumulus-primitives-utility/runtime-benchmarks",
     "hex-literal",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "orml-vesting/runtime-benchmarks",
+    "orml-xtokens/runtime-benchmarks",
     "orml-pallets-benchmarking/runtime-benchmarks",
+    "pallet-assets/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
@@ -193,6 +215,8 @@ runtime-benchmarks = [
     "sp-runtime/runtime-benchmarks",
     "staging-xcm-builder/runtime-benchmarks",
     "staging-xcm-executor/runtime-benchmarks",
+    # integritee
+    "pallet-asset-registry/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -200,11 +224,14 @@ try-runtime = [
     "cumulus-pallet-parachain-system/try-runtime",
     "cumulus-pallet-xcm/try-runtime",
     "cumulus-pallet-xcmp-queue/try-runtime",
-    "frame-support/try-runtime",
     "frame-executive/try-runtime",
     "frame-system/try-runtime",
+    "frame-support/try-runtime",
     "frame-try-runtime/try-runtime",
     "orml-vesting/try-runtime",
+    "orml-xcm/try-runtime",
+    "orml-xtokens/try-runtime",
+    "pallet-assets/try-runtime",
     "pallet-aura/try-runtime",
     "pallet-authorship/try-runtime",
     "pallet-balances/try-runtime",
@@ -228,4 +255,6 @@ try-runtime = [
     "polkadot-runtime-common/try-runtime",
     "sp-runtime/try-runtime",
     "staging-parachain-info/try-runtime",
+    # integritee
+    "pallet-asset-registry/try-runtime",
 ]
