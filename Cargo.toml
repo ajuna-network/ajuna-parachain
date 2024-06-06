@@ -32,6 +32,7 @@ parity-scale-codec = { version = "3.0.0", default-features = false }
 scale-info         = { version = "2.1.1", default-features = false }
 
 # Substrate
+assets-common                              = { version = "0.13.0", default-features = false }
 frame-benchmarking                         = { version = "34.0.0", default-features = false }
 frame-benchmarking-cli                     = { version = "38.0.0" }
 frame-executive                            = { version = "34.0.0", default-features = false }
@@ -40,6 +41,7 @@ frame-system                               = { version = "34.0.1", default-featu
 frame-system-benchmarking                  = { version = "34.0.0", default-features = false }
 frame-system-rpc-runtime-api               = { version = "32.0.0", default-features = false }
 frame-try-runtime                          = { version = "0.40.0", default-features = false }
+pallet-assets                              = { version = "35.0.0", default-features = false }
 pallet-aura                                = { version = "33.0.0", default-features = false }
 pallet-authorship                          = { version = "34.0.0", default-features = false }
 pallet-balances                            = { version = "35.0.0", default-features = false }
@@ -147,13 +149,21 @@ parachains-common                       = { version = "13.0.0", default-features
 staging-parachain-info                  = { version = "0.13.0", default-features = false }
 
 # ORML
+orml-traits = { version = "0.12.0", default-features = false }
 orml-vesting = { version = "0.12.0", default-features = false }
+orml-xcm = { version = "0.12.0", default-features = false }
+orml-xcm-support = { version = "0.12.0", default-features = false }
+orml-xtokens = { version = "0.12.0", default-features = false }
 
 # Runtime
 ajuna-runtime = { path = "runtime/ajuna" }
 
 # Ajuna Pallets
 orml-pallets-benchmarking                   = { git = "https://github.com/ajuna-network/ajuna-pallets.git", tag = "v0.8.0", default-features = false }
+
+# integritee pallets
+pallet-asset-registry = { default-features = false, git = "https://github.com/integritee-network/pallets.git", branch = "cl/polkadot-v1.12.0" }
+xcm-primitives = { default-features = false, git = "https://github.com/integritee-network/pallets.git", branch = "cl/polkadot-v1.12.0" }
 
 [profile.production]
 codegen-units = 1
