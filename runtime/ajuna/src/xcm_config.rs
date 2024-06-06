@@ -456,11 +456,11 @@ parameter_type_with_key! {
 	};
 }
 
-const fn baju_general_key() -> Junction {
+const fn ajun_general_key() -> Junction {
 	const AJUN_KEY: [u8; 32] = *b"AJUN\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 	GeneralKey { length: 4, data: AJUN_KEY }
 }
-const AJUN_GENERAL_KEY: Junction = baju_general_key();
+const AJUN_GENERAL_KEY: Junction = ajun_general_key();
 
 /// Converts a CurrencyId into a Location, used by xtoken for XCMP.
 pub struct CurrencyIdConvert;
