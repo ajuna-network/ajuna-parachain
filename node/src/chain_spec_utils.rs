@@ -114,21 +114,31 @@ pub enum RelayChain {
 	WestendLocal,
 }
 
-impl ToString for RelayChain {
-	fn to_string(&self) -> String {
+impl RelayChain {
+	pub fn id(&self) -> &'static str {
 		match self {
-			RelayChain::Kusama => "kusama".into(),
-			RelayChain::Paseo => "paseo".into(),
-			RelayChain::Westend => "westend".into(),
-			RelayChain::KusamaLocal => "kusama-local".into(),
-			RelayChain::PaseoLocal => "paseo-local".into(),
-			RelayChain::RococoLocal => "rococo-local".into(),
-			RelayChain::WestendLocal => "westend-local".into(),
+			RelayChain::Kusama => "kusama",
+			RelayChain::Paseo => "paseo",
+			RelayChain::Westend => "westend",
+			RelayChain::KusamaLocal => "kusama-local",
+			RelayChain::PaseoLocal => "paseo-local",
+			RelayChain::RococoLocal => "rococo-local",
+			RelayChain::WestendLocal => "westend-local",
 		}
 	}
-}
 
-impl RelayChain {
+	pub fn name(&self) -> &'static str {
+		match self {
+			RelayChain::Kusama => "Kusama",
+			RelayChain::Paseo => "Paseo",
+			RelayChain::Westend => "Westend",
+			RelayChain::KusamaLocal => "Kusama-local",
+			RelayChain::PaseoLocal => "Paseo-local",
+			RelayChain::RococoLocal => "Rococo-local",
+			RelayChain::WestendLocal => "Westend-local",
+		}
+	}
+
 	pub(crate) fn chain_type(&self) -> ChainType {
 		match self {
 			RelayChain::Kusama => ChainType::Live,
