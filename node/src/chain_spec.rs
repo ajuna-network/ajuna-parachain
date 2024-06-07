@@ -70,10 +70,10 @@ pub fn ajuna_chain_spec(
 	#[allow(deprecated)]
 	ChainSpec::builder(
 		ajuna_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-		Extensions { relay_chain: relay_chain.to_string(), para_id: para_id.into() },
+		Extensions { relay_chain: relay_chain.id().to_string(), para_id: para_id.into() },
 	)
-	.with_name("Ajuna")
-	.with_id(&format!("ajuna-{}", relay_chain.to_string()))
+	.with_name(&format!("Ajuna {}", relay_chain.name()))
+	.with_id(&format!("ajuna-{}", relay_chain.id()))
 	.with_protocol_id(relay_chain.protocol_id())
 	.with_chain_type(relay_chain.chain_type())
 	.with_properties(properties)
