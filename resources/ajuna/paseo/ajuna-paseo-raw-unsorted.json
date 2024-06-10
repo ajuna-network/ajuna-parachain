@@ -1,16 +1,16 @@
 {
   "name": "Ajuna Paseo",
-  "id": "ajuna-ajuna-westend",
+  "id": "ajuna-paseo",
   "chainType": "Live",
   "bootNodes": [],
   "telemetryEndpoints": null,
-  "protocolId": "ajuna-w",
+  "protocolId": "ajuna-pas",
   "properties": {
     "ss58Format": 1328,
     "tokenDecimals": 12,
     "tokenSymbol": "AJUN"
   },
-  "relay_chain": "ajuna-westend",
+  "relay_chain": "paseo",
   "para_id": 2051,
   "codeSubstitutes": {},
   "genesis": {

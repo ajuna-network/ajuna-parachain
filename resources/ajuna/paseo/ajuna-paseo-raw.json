@@ -75,7 +75,7 @@
       }
     }
   },
-  "id": "ajuna-ajuna-westend",
+  "id": "ajuna-paseo",
   "name": "Ajuna Paseo",
   "para_id": 2051,
   "properties": {
@@ -83,7 +83,7 @@
     "tokenDecimals": 12,
     "tokenSymbol": "AJUN"
   },
-  "protocolId": "ajuna-w",
-  "relay_chain": "ajuna-westend",
+  "protocolId": "ajuna-pas",
+  "relay_chain": "paseo",
   "telemetryEndpoints": null
 }
