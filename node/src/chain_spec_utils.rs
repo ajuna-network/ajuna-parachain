@@ -105,10 +105,10 @@ impl AjunaKeys {
 }
 
 pub enum RelayChain {
-	Kusama,
+	Polkadot,
 	Paseo,
 	Westend,
-	KusamaLocal,
+	PolkadotLocal,
 	PaseoLocal,
 	RococoLocal,
 	WestendLocal,
@@ -117,10 +117,10 @@ pub enum RelayChain {
 impl RelayChain {
 	pub fn id(&self) -> &'static str {
 		match self {
-			RelayChain::Kusama => "kusama",
+			RelayChain::Polkadot => "polkadot",
 			RelayChain::Paseo => "paseo",
 			RelayChain::Westend => "westend",
-			RelayChain::KusamaLocal => "kusama-local",
+			RelayChain::PolkadotLocal => "polkadot-local",
 			RelayChain::PaseoLocal => "paseo-local",
 			RelayChain::RococoLocal => "rococo-local",
 			RelayChain::WestendLocal => "westend-local",
@@ -129,10 +129,10 @@ impl RelayChain {
 
 	pub fn name(&self) -> &'static str {
 		match self {
-			RelayChain::Kusama => "Kusama",
+			RelayChain::Polkadot => "Polkadot",
 			RelayChain::Paseo => "Paseo",
 			RelayChain::Westend => "Westend",
-			RelayChain::KusamaLocal => "Kusama-local",
+			RelayChain::PolkadotLocal => "Polkadot-local",
 			RelayChain::PaseoLocal => "Paseo-local",
 			RelayChain::RococoLocal => "Rococo-local",
 			RelayChain::WestendLocal => "Westend-local",
@@ -141,10 +141,10 @@ impl RelayChain {
 
 	pub(crate) fn chain_type(&self) -> ChainType {
 		match self {
-			RelayChain::Kusama => ChainType::Live,
+			RelayChain::Polkadot => ChainType::Live,
 			RelayChain::Paseo => ChainType::Live,
 			RelayChain::Westend => ChainType::Live,
-			RelayChain::KusamaLocal => ChainType::Local,
+			RelayChain::PolkadotLocal => ChainType::Local,
 			RelayChain::PaseoLocal => ChainType::Local,
 			RelayChain::RococoLocal => ChainType::Local,
 			RelayChain::WestendLocal => ChainType::Local,
@@ -152,10 +152,10 @@ impl RelayChain {
 	}
 	pub(crate) fn protocol_id(&self) -> &str {
 		match self {
-			RelayChain::Kusama => "ajuna-k",
+			RelayChain::Polkadot => "ajuna-k",
 			RelayChain::Paseo => "ajuna-pas",
 			RelayChain::Westend => "ajuna-w",
-			RelayChain::KusamaLocal => "ajuna-kl",
+			RelayChain::PolkadotLocal => "ajuna-kl",
 			RelayChain::PaseoLocal => "ajuna-pasl",
 			RelayChain::RococoLocal => "ajuna-rl",
 			RelayChain::WestendLocal => "ajuna-wl",
