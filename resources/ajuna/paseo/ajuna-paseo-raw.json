@@ -1,5 +1,8 @@
 {
-  "bootNodes": [],
+  "bootNodes": [
+    "/ip4/95.217.105.80/tcp/23804/p2p/p2p/12D3KooWFR6k9RLLRUJDhS8R4a2s7c8Tc1t2Rf7d7WGn9K2XpNsB",
+    "/ip4/135.181.240.254/tcp/23804/p2p/p2p/12D3KooWLRzxpDsfbgZPVM3719JQ1Xct5jg3En7ANJZ2ntRfYo7x"
+  ],
   "chainType": "Live",
   "codeSubstitutes": {},
   "genesis": {
@@ -75,7 +78,7 @@
       }
     }
   },
-  "id": "ajuna-ajuna-westend",
+  "id": "ajuna-paseo",
   "name": "Ajuna Paseo",
   "para_id": 2051,
   "properties": {
@@ -83,7 +86,7 @@
     "tokenDecimals": 12,
     "tokenSymbol": "AJUN"
   },
-  "protocolId": "ajuna-w",
-  "relay_chain": "ajuna-westend",
+  "protocolId": "ajuna-pas",
+  "relay_chain": "paseo",
   "telemetryEndpoints": null
 }

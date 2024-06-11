@@ -85,17 +85,17 @@ const LOCAL_PARA_ID: u32 = 2051;
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// live configs
-		"ajuna-kusama" => Box::new(ajuna_config()?),
+		"ajuna-polkadot" => Box::new(ajuna_config()?),
 		"ajuna-paseo" => Box::new(ajuna_paseo_config()?),
 		"ajuna-westend" => Box::new(ajuna_westend_config()?),
 
 		// fresh production/testnet chain-specs based on the current rust code
-		"ajuna-kusama-fresh" => Box::new(ajuna_chain_spec(POLKADOT_PARA_ID.into(), GenesisKeys::Ajuna, RelayChain::Kusama)),
+		"ajuna-polkadot-fresh" => Box::new(ajuna_chain_spec(POLKADOT_PARA_ID.into(), GenesisKeys::Ajuna, RelayChain::Polkadot)),
 		"ajuna-paseo-fresh" => Box::new(ajuna_chain_spec(PASEO_PARA_ID.into(), GenesisKeys::TestnetDev, RelayChain::Paseo)),
 		"ajuna-westend-fresh" => Box::new(ajuna_chain_spec(WESTEND_PARA_ID.into(), GenesisKeys::TestnetDev, RelayChain::Westend)),
 
 		// rust code based configs for a local setup
-		"ajuna-kusama-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::KusamaLocal)),
+		"ajuna-polkadot-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::PolkadotLocal)),
 		"ajuna-paseo-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::PaseoLocal)),
 		"ajuna-westend-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::WestendLocal)),
 		"" | "ajuna-rococo-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::RococoLocal)),
