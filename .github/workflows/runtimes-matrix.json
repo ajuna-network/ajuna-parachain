@@ -4,5 +4,11 @@
     "package": "ajuna-runtime",
     "path": "runtime/ajuna-runtime",
     "uri": "wss://rpc-para.ajuna.network:443"
+  },
+  {
+    "name": "ajuna",
+    "package": "ajuna-runtime",
+    "path": "runtime/ajuna-runtime",
+    "uri": "wss://rpc-paseo.ajuna.network:443"
   }
 ]
