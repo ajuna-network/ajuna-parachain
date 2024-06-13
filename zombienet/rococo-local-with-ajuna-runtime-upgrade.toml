@@ -36,36 +36,30 @@ ws_port = 9977
 id = 2000
 addToGenesis = true
 cumulus_based = true
-# I use this to test the runtime upgrade. Run the new collators
-# but use the old chain spec that has been generated with a node
-# based on the current production runtime.
-# Currently: v203.
-#
-# Note: this is not at plain v203 chain-spec because creating chain-specs
-# was broken. It is based on this branch: https://github.com/ajuna-network/ajuna-parachain/tree/cl/fix-chainspec-generation-v203
-chain_spec_path = "zombienet/ajuna-rococo-localv203.json"
 
 [parachains.collator]
 name = "ajuna-collator"
-command = "~/bin/ajuna-node-v400"
+# This should ideally be the old collator as this is used
+# to build the modified chain-spec.
+command = "~/bin/ajuna-node-v500"
 
 [[parachains.collators]]
 name = "ajuna-collator-1"
 validator = true
-command = "~/bin/ajuna-node-v400"
+command = "~/bin/ajuna-node-v500"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9954
 
 [[parachains.collators]]
 name = "ajuna-collator-2"
 validator = true
-command = "~/bin/ajuna-node-v400"
+command = "~/bin/ajuna-node-v600-rc1"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9955
 
 [[parachains.collators]]
 name = "ajuna-collator-3"
 validator = true
-command = "~/bin/ajuna-node-v400"
+command = "~/bin/ajuna-node-v600-rc1"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9956
