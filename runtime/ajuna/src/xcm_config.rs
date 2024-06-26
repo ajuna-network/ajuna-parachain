@@ -441,9 +441,14 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 
 pub struct AjunaActiveXCMChannels;
 
+/// Polkadot AssetHub parachain identifier
+pub const ASSET_HUB_PARA_ID: ParaId = ParaId::new(1000);
+/// Polkadot HydraDX parachain identifier
+pub const HYDRA_DX_PARA_ID: ParaId = ParaId::new(2034);
+
 impl ListChannelInfos for AjunaActiveXCMChannels {
 	fn outgoing_channels() -> Vec<ParaId> {
-		Vec::with_capacity(0)
+		vec![ASSET_HUB_PARA_ID, HYDRA_DX_PARA_ID]
 	}
 }
 
