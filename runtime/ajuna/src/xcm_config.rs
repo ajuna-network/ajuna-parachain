@@ -394,10 +394,10 @@ impl pallet_xcm::Config for Runtime {
 	type CurrencyMatcher = ();
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, ()>; // Prohibit sending arbitrary XCMs from users of this chain
 	type XcmRouter = XcmRouter;
-	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	// Allow any local origin in XCM execution.
-	type XcmExecuteFilter = Nothing;
+	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	// Disable generic XCM execution. This does not affect Teleport or Reserve Transfer.
+	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = OnlyTeleportNative;
 	type XcmReserveTransferFilter = Everything;
