@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-node"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "ajuna-runtime",
  "async-trait",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-runtime"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "assets-common",
  "cumulus-pallet-aura-ext",
