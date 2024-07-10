@@ -1,30 +1,22 @@
-// Ajuna Node
-// Copyright (C) 2022 BlogaTech AG
+// Copyright (C) Parity Technologies (UK) Ltd.
+// This file is part of Cumulus.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
+// Substrate is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// This program is distributed in the hope that it will be useful,
+// Substrate is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
+// GNU General Public License for more details.
 
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
+use substrate_build_script_utils::{generate_cargo_keys, rerun_if_git_head_changed};
+
 fn main() {
-	substrate_wasm_builder::WasmBuilder::build_using_defaults()
+	generate_cargo_keys();
+	rerun_if_git_head_changed();
 }
-
-#[cfg(all(feature = "std", feature = "metadata-hash"))]
-fn main() {
-	substrate_wasm_builder::WasmBuilder::init_with_defaults()
-		.enable_metadata_hash("AJUN", 12)
-		.build()
-}
-
-#[cfg(not(feature = "std"))]
-fn main() {}
