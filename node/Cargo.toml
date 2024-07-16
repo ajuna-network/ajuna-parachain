@@ -117,3 +117,4 @@ try-runtime = [
 	"polkadot-cli/try-runtime",
 	"sp-runtime/try-runtime",
 ]
+metadata-hash = ["ajuna-runtime/metadata-hash"]
