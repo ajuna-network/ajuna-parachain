@@ -2,7 +2,10 @@
   "name": "Ajuna Polkadot",
   "id": "ajuna_polkadot",
   "chainType": "Live",
-  "bootNodes": [],
+  "bootNodes": [
+    "/dns/ajuna.boot.stake.plus/tcp/30332/wss/p2p/12D3KooWRyAHbMPNL7CuQtm987a6iLKftME3eQpVqBC6fUsjWuof",
+    "/dns/ajuna.boot.stake.plus/tcp/31332/wss/p2p/12D3KooWLXSQdRNS5EXuhpFYiRKHufRsQtb64t4CYj2ah7zx86jA"
+  ],
   "telemetryEndpoints": null,
   "protocolId": "ajuna-polkadot",
   "properties": {
