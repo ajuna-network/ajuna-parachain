@@ -23,6 +23,7 @@ parity-scale-codec = { workspace = true, features = ["std"] }
 # Substrate
 frame-benchmarking             = { workspace = true, features = ["std"] }
 frame-benchmarking-cli         = { workspace = true }
+frame-metadata-hash-extension  = { workspace = true, features = ["std"] }
 frame-support                  = { workspace = true, features = ["std"] }
 frame-system-rpc-runtime-api   = { workspace = true, features = ["std"] }
 frame-try-runtime              = { workspace = true, features = ["std"] }
@@ -116,3 +117,4 @@ try-runtime = [
 	"polkadot-cli/try-runtime",
 	"sp-runtime/try-runtime",
 ]
+metadata-hash = ["ajuna-runtime/metadata-hash"]

@@ -19,9 +19,10 @@ on:
       # Matches tags containing an arbitrary suffix starting with '-'.
       - v[0-9]+.[0-9]+.[0-9]+-*
 
-# Ensures only one build is run per branch, unless pushing to develop
+# Cancel a currently running workflow from the same PR, branch or tag when a new workflow is
+# triggered (ref https://stackoverflow.com/a/72408109)
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/develop' && github.run_number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -105,6 +106,8 @@ jobs:
       - name: Build ${{ matrix.runtime }}
         id: srtool_build
         uses: chevdor/srtool-actions@v0.9.2
+        env:
+          BUILD_OPTS: "--features on-chain-release-build"
         with:
           image: paritytech/srtool
           chain: ${{ matrix.runtime }}

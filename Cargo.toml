@@ -36,6 +36,7 @@ assets-common                              = { version = "0.14.0", default-featu
 frame-benchmarking                         = { version = "35.0.0", default-features = false }
 frame-benchmarking-cli                     = { version = "39.0.0" }
 frame-executive                            = { version = "35.0.0", default-features = false }
+frame-metadata-hash-extension              = { version = "0.3.0", default-features = false }
 frame-support                              = { version = "35.0.0", default-features = false }
 frame-system                               = { version = "35.0.0", default-features = false }
 frame-system-benchmarking                  = { version = "35.0.0", default-features = false }
