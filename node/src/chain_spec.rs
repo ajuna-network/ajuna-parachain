@@ -46,25 +46,16 @@ pub fn ajuna_chain_spec(
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), SS58_FORMAT.into());
 
-	let (root, endowed, invulnerables, gov) = match genesis_keys {
-		GenesisKeys::Ajuna => (
-			AjunaKeys::root(),
-			vec![AjunaKeys::root()],
-			AjunaKeys::invulnerables(),
-			AjunaKeys::governance(),
-		),
+	let (endowed, invulnerables, gov) = match genesis_keys {
+		GenesisKeys::Ajuna =>
+			(AjunaKeys::endowed(), AjunaKeys::invulnerables(), AjunaKeys::governance()),
 		GenesisKeys::TestnetDev => (
-			TestnetDevKeys::root(),
-			vec![TestnetDevKeys::root()],
+			TestnetDevKeys::endowed(),
 			TestnetDevKeys::invulnerables(),
 			TestnetDevKeys::governance(),
 		),
-		GenesisKeys::WellKnown => (
-			WellKnownKeys::root(),
-			WellKnownKeys::endowed(),
-			WellKnownKeys::invulnerables(),
-			WellKnownKeys::governance(),
-		),
+		GenesisKeys::WellKnown =>
+			(WellKnownKeys::endowed(), WellKnownKeys::invulnerables(), WellKnownKeys::governance()),
 	};
 
 	#[allow(deprecated)]
@@ -81,7 +72,6 @@ pub fn ajuna_chain_spec(
 		// initial collators.
 		invulnerables,
 		endowed,
-		root,
 		gov,
 		para_id,
 	))
@@ -91,7 +81,6 @@ pub fn ajuna_chain_spec(
 fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
-	root: AccountId,
 	governance_accounts: Vec<AccountId>,
 	id: ParaId,
 ) -> serde_json::Value {
@@ -127,7 +116,6 @@ fn testnet_genesis(
 		"polkadotXcm": {
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
-		"sudo": { "key": Some(root) }
 	})
 }
 

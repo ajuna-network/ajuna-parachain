@@ -11,8 +11,6 @@ runtime-log-level: 5
 
 # Once we have governance we want to make Alice single councillor and technical committee member.
 import-storage:
-  Sudo:
-    Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
   System:
     Account: # Give our dev accounts some funds
       - - - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
