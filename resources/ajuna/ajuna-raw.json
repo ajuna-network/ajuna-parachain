@@ -2,7 +2,10 @@
   "name": "Ajuna Polkadot",
   "id": "ajuna_polkadot",
   "chainType": "Live",
-  "bootNodes": [],
+  "bootNodes": [
+    "/dns4/boot-node.helikon.io/tcp/8510/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX",
+    "/dns4/boot-node.helikon.io/tcp/8512/wss/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX"
+  ],
   "telemetryEndpoints": null,
   "protocolId": "ajuna-polkadot",
   "properties": {
