@@ -4,7 +4,8 @@
   "chainType": "Live",
   "bootNodes": [
     "/dns4/boot-node.helikon.io/tcp/8510/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX",
-    "/dns4/boot-node.helikon.io/tcp/8512/wss/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX"
+    "/dns4/boot-node.helikon.io/tcp/8512/wss/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX",
+    "/ip4/159.65.30.223/tcp/30333/ws/p2p/12D3KooWLFfa4J2T3JGZft74q3Wu6kSYHPJHNzLsVhdLPGbAZ9Wf"
   ],
   "telemetryEndpoints": null,
   "protocolId": "ajuna-polkadot",
