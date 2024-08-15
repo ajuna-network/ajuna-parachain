@@ -25,6 +25,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod assets;
 mod gov;
 mod proxy_type;
+mod tx_payment;
 mod weights;
 pub mod xcm_config;
 
