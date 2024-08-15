@@ -742,19 +742,6 @@ parameter_types! {
 		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 
-impl pallet_preimage::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::pallet_preimage::WeightInfo<Runtime>;
-	type Currency = Balances;
-	type ManagerOrigin = EnsureRoot<AccountId>;
-	type Consideration = HoldConsideration<
-		AccountId,
-		Balances,
-		PreimageHoldReason,
-		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
-	>;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime
@@ -808,8 +795,23 @@ construct_runtime!(
 		// Assets related stuff
 		Assets: pallet_assets::<Instance1> = 90,
 		AssetRegistry: pallet_asset_registry = 91,
+		PoolAssets: pallet_assets::<Instance3> = 92,
+		AssetConversion: pallet_asset_conversion = 93,
 	}
 );
+
+impl pallet_preimage::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_preimage::WeightInfo<Runtime>;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 #[macro_use]

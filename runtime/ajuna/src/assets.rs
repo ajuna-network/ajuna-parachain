@@ -15,17 +15,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	weights, AccountId, Assets, Balance, Balances, Runtime, RuntimeEvent, RuntimeOrigin, AJUN,
-	MILLI_AJUN,
+	tx_payment, weights, xcm_config::DotLocationV3, AccountId, AssetConversion, Assets, Balance,
+	Balances, Runtime, RuntimeEvent, RuntimeOrigin, AJUN, MILLI_AJUN,
 };
 use frame_support::{
 	pallet_prelude::ConstU32,
-	traits::{ConstU128, EnsureOriginWithArg},
+	parameter_types,
+	traits::{ConstU128, EnsureOriginWithArg, NeverEnsureOrigin},
 };
 use frame_system::EnsureRoot;
 use parachains_common::AssetIdForTrustBackedAssets;
 
 pub type AssetBalance = Balance;
+
+/// We allow root to execute privileged asset operations.
+pub type AssetsForceOrigin = EnsureRoot<AccountId>;
 
 /// always denies creation of assets
 pub struct NoAssetCreators;
@@ -91,8 +95,7 @@ impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
 impl pallet_asset_conversion_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Fungibles = LocalAndForeignAssets;
-	type OnChargeAssetTransaction =
-		impls::tx_payment::SwapCreditAdapter<DotLocationV3, AssetConversion>;
+	type OnChargeAssetTransaction = tx_payment::SwapCreditAdapter<DotLocationV3, AssetConversion>;
 }
 
 impl pallet_asset_registry::Config for Runtime {
