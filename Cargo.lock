@@ -200,6 +200,8 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
+ "pallet-asset-conversion",
+ "pallet-asset-conversion-tx-payment",
  "pallet-asset-registry",
  "pallet-assets",
  "pallet-aura",
@@ -6409,6 +6411,22 @@ dependencies = [
  "sp-arithmetic",
  "sp-core",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-asset-conversion-tx-payment"
+version = "17.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59b413508fc0745307d01c55e686cf00d67f09b6652b7db344b69da305feaae0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-asset-conversion",
+ "pallet-transaction-payment",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]

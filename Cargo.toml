@@ -43,6 +43,8 @@ frame-system-benchmarking                  = { version = "35.0.0", default-featu
 frame-system-rpc-runtime-api               = { version = "33.0.0", default-features = false }
 frame-try-runtime                          = { version = "0.41.0", default-features = false }
 pallet-assets                              = { version = "36.0.0", default-features = false }
+pallet-asset-conversion                    = { version = "17.0.0", default-features = false }
+pallet-asset-conversion-tx-payment         = { version = "17.0.0", default-features = false }
 pallet-aura                                = { version = "34.0.0", default-features = false }
 pallet-authorship                          = { version = "35.0.0", default-features = false }
 pallet-balances                            = { version = "36.0.0", default-features = false }
