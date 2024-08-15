@@ -130,6 +130,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
@@ -211,7 +212,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("ajuna"),
 	impl_name: create_runtime_str!("ajuna"),
 	authoring_version: 1,
-	spec_version: 701,
+	spec_version: 705,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -331,7 +332,6 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::MessageQueue(_) |
 			RuntimeCall::CumulusXcm(_) |
 			// governance
-			RuntimeCall::Sudo(_) |
 			RuntimeCall::Treasury(_) |
 			RuntimeCall::Council(_) |
 			RuntimeCall::CouncilMembership(_) |
@@ -398,12 +398,6 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
-}
-
-impl pallet_sudo::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type WeightInfo = weights::pallet_sudo::WeightInfo<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -798,7 +792,7 @@ construct_runtime!(
 		OrmlXcm: orml_xcm = 36,
 
 		// Governance
-		Sudo: pallet_sudo = 40,
+		// Sudo: pallet_sudo = 40, removed
 		Treasury: pallet_treasury = 41,
 		// type CouncilCollectiveInstance = pallet_collective::Instance2
 		Council: pallet_collective::<Instance2> = 42,
@@ -841,7 +835,6 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_scheduler, Scheduler]
 		[pallet_session, SessionBench::<Runtime>]
-		[pallet_sudo, Sudo]
 		[pallet_timestamp, Timestamp]
 		// [pallet_treasury, Treasury] // treasury config is broken, needs fixes
 		[pallet_utility, Utility]

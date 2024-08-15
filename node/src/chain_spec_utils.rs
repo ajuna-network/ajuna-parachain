@@ -28,10 +28,6 @@ pub enum GenesisKeys {
 pub struct WellKnownKeys;
 
 impl WellKnownKeys {
-	pub fn root() -> AccountId {
-		Alice.to_account_id()
-	}
-
 	pub fn endowed() -> Vec<AccountId> {
 		vec![
 			Alice.to_account_id(),
@@ -59,9 +55,16 @@ impl WellKnownKeys {
 pub struct TestnetDevKeys;
 
 impl TestnetDevKeys {
+	pub fn endowed() -> Vec<AccountId> {
+		vec![Self::root()]
+	}
+
+	/// Sudo does no longer exist, but we keep it for reference, as this was the account that got
+	/// the money in the beginning.
 	pub fn root() -> AccountId {
 		pub_sr25519("5H6WjuXTrFTpiAmr2Pohzbuj7EvBHuDNht7PSSUCCDv9u4ec").into()
 	}
+
 	pub fn invulnerables() -> Vec<(AccountId, AuraId)> {
 		vec![
 			// Col1-BUBBLEBOBBLE
@@ -84,9 +87,16 @@ impl TestnetDevKeys {
 pub struct AjunaKeys;
 
 impl AjunaKeys {
-	pub fn root() -> AccountId {
+	pub fn endowed() -> Vec<AccountId> {
+		vec![Self::root()]
+	}
+
+	/// Sudo does no longer exist, but we keep it for reference, as this was the account that got
+	/// the money in the beginning.
+	fn root() -> AccountId {
 		pub_sr25519("13EnS5vY7i1rvF7NqMniipYpqtbbUp3burkeYEEp6RvLMwGz").into()
 	}
+
 	pub fn invulnerables() -> Vec<(AccountId, AuraId)> {
 		vec![
 			(
