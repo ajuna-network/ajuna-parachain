@@ -23,7 +23,6 @@ mod chain_spec;
 mod chain_spec_utils;
 mod cli;
 mod command;
-mod fake_runtime_api;
 mod rpc;
 mod service;
 

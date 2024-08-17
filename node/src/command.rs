@@ -19,8 +19,7 @@ use crate::{
 	chain_spec::{ajuna_chain_spec, ajuna_config, ajuna_paseo_config, ajuna_westend_config},
 	chain_spec_utils::{GenesisKeys, RelayChain},
 	cli::{Cli, RelayChainCli, Subcommand},
-	fake_runtime_api::aura::RuntimeApi,
-	service::{new_partial, Block, Hash},
+	service::{new_partial, Block},
 };
 use cumulus_client_service::storage_proof_size::HostFunctions as ReclaimHostFunctions;
 use cumulus_primitives_core::ParaId;
@@ -32,48 +31,7 @@ use sc_cli::{
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_runtime::traits::AccountIdConversion;
-use std::{net::SocketAddr, path::PathBuf};
-
-/// Helper enum that is used for better distinction of different parachain/runtime configuration
-/// (it is based/calculated on ChainSpec's ID attribute)
-#[derive(Debug, PartialEq, Default)]
-enum Runtime {
-	/// Ajuna only has one runtime variant, but we maintain the upstream paradigm to simplify
-	/// maintenance.
-	#[default]
-	Default,
-}
-
-trait RuntimeResolver {
-	fn runtime(&self) -> Result<Runtime>;
-}
-
-impl RuntimeResolver for dyn ChainSpec {
-	fn runtime(&self) -> Result<Runtime> {
-		Ok(runtime(self.id()))
-	}
-}
-
-/// Implementation, that can resolve [`Runtime`] from any json configuration file
-impl RuntimeResolver for PathBuf {
-	fn runtime(&self) -> Result<Runtime> {
-		#[derive(Debug, serde::Deserialize)]
-		struct EmptyChainSpecWithId {
-			id: String,
-		}
-
-		let file = std::fs::File::open(self)?;
-		let reader = std::io::BufReader::new(file);
-		let chain_spec: EmptyChainSpecWithId =
-			serde_json::from_reader(reader).map_err(|e| sc_cli::Error::Application(Box::new(e)))?;
-
-		Ok(runtime(&chain_spec.id))
-	}
-}
-
-fn runtime(_id: &str) -> Runtime {
-	Runtime::default()
-}
+use std::net::SocketAddr;
 
 const POLKADOT_PARA_ID: u32 = 2051;
 const PASEO_PARA_ID: u32 = 2051;
@@ -176,35 +134,14 @@ impl SubstrateCli for RelayChainCli {
 	}
 }
 
-/// Creates partial components for the runtimes that are supported by the benchmarks.
-macro_rules! construct_partials {
-	($config:expr, |$partials:ident| $code:expr) => {
-		match $config.chain_spec.runtime()? {
-			_ => {
-				let $partials = new_partial::<RuntimeApi, _>(
-					&$config,
-					crate::service::build_aura_import_queue,
-				)?;
-				$code
-			},
-		}
-	};
-}
-
 macro_rules! construct_async_run {
 	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
-				runner.async_run(|$config| {
-					let $components = new_partial::<
-						RuntimeApi,
-						_,
-					>(
-						&$config,
-						crate::service::build_aura_import_queue,
-					)?;
-					let task_manager = $components.task_manager;
-					{ $( $code )* }.map(|v| (v, task_manager))
-				})
+		runner.async_run(|$config| {
+			let $components = new_partial(&$config)?;
+			let task_manager = $components.task_manager;
+			{ $( $code )* }.map(|v| (v, task_manager))
+		})
 	}}
 }
 
@@ -261,8 +198,11 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::ExportGenesisHead(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner
-				.sync_run(|config| construct_partials!(config, |partials| cmd.run(partials.client)))
+			runner.sync_run(|config| {
+				let partials = new_partial(&config)?;
+
+				cmd.run(partials.client)
+			})
 		},
 		Some(Subcommand::ExportGenesisWasm(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -285,24 +225,21 @@ pub fn run() -> Result<()> {
 							.into())
 					},
 				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					construct_partials!(config, |partials| cmd.run(partials.client))
+					let partials = new_partial(&config)?;
+					cmd.run(partials.client)
 				}),
 				#[cfg(not(feature = "runtime-benchmarks"))]
-				BenchmarkCmd::Storage(_) =>
-					return Err(sc_cli::Error::Input(
-						"Compile with --features=runtime-benchmarks \
+				BenchmarkCmd::Storage(_) => Err(sc_cli::Error::Input(
+					"Compile with --features=runtime-benchmarks \
 						to enable storage benchmarks."
-							.into(),
-					)
-					.into()),
+						.into(),
+				)),
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					construct_partials!(config, |partials| {
-						let db = partials.backend.expose_db();
-						let storage = partials.backend.expose_storage();
-
-						cmd.run(config, partials.client.clone(), db, storage)
-					})
+					let partials = new_partial(&config)?;
+					let db = partials.backend.expose_db();
+					let storage = partials.backend.expose_storage();
+					cmd.run(config, partials.client.clone(), db, storage)
 				}),
 				BenchmarkCmd::Machine(cmd) =>
 					runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())),
@@ -350,52 +287,18 @@ pub fn run() -> Result<()> {
 				info!("Parachain Account: {}", parachain_account);
 				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
 
-				match polkadot_config.network.network_backend {
-					sc_network::config::NetworkBackendType::Libp2p =>
-						start_node::<sc_network::NetworkWorker<_, _>>(
-							config,
-							polkadot_config,
-							collator_options,
-							id,
-							hwbench,
-						)
-						.await,
-					sc_network::config::NetworkBackendType::Litep2p =>
-						start_node::<sc_network::Litep2pNetworkBackend>(
-							config,
-							polkadot_config,
-							collator_options,
-							id,
-							hwbench,
-						)
-						.await,
-				}
+				crate::service::start_parachain_node(
+					config,
+					polkadot_config,
+					collator_options,
+					id,
+					hwbench,
+				)
+				.await
+				.map(|r| r.0)
+				.map_err(Into::into)
 			})
 		},
-	}
-}
-
-async fn start_node<Network: sc_network::NetworkBackend<Block, Hash>>(
-	config: sc_service::Configuration,
-	polkadot_config: sc_service::Configuration,
-	collator_options: cumulus_client_cli::CollatorOptions,
-	id: ParaId,
-	hwbench: Option<sc_sysinfo::HwBench>,
-) -> Result<sc_service::TaskManager> {
-	// We only have one Runtime variant, but maintenance is easier if we use the same
-	// code structure.
-	#[allow(clippy::match_single_binding)]
-	match config.chain_spec.runtime()? {
-		Runtime::Default => crate::service::start_generic_aura_lookahead_node::<Network>(
-			config,
-			polkadot_config,
-			collator_options,
-			id,
-			hwbench,
-		)
-		.await
-		.map(|r| r.0)
-		.map_err(Into::into),
 	}
 }
 
