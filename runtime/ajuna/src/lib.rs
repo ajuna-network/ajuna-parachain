@@ -345,7 +345,9 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::XTokens(_) => true,
 			RuntimeCall::OrmlXcm(_) => true,
 			RuntimeCall::Assets(_) => true,
-			RuntimeCall::AssetRegistry(_) => true
+			RuntimeCall::AssetRegistry(_) => true,
+			RuntimeCall::PoolAssets(_) => true,
+			RuntimeCall::AssetConversion(_) => true
 		}
 	}
 }
