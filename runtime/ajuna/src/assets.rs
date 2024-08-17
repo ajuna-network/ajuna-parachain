@@ -16,15 +16,26 @@
 
 use crate::{
 	tx_payment, weights, xcm_config::DotLocationV3, AccountId, AssetConversion, Assets, Balance,
-	Balances, Runtime, RuntimeEvent, RuntimeOrigin, AJUN, MILLI_AJUN,
+	Balances, ExistentialDeposit, PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, AJUN,
+	MILLI_AJUN,
 };
 use frame_support::{
-	pallet_prelude::ConstU32,
+	ord_parameter_types,
+	pallet_prelude::{ConstU32, PalletInfoAccess},
 	parameter_types,
-	traits::{ConstU128, EnsureOriginWithArg, NeverEnsureOrigin},
+	traits::{
+		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
+		fungibles,
+		tokens::{imbalance::ResolveAssetTo, ConversionFromAssetBalance, PayFromAccount},
+		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
+	},
+	PalletId,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSignedBy};
+use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
+use sp_runtime::{traits::AccountIdConversion, Permill};
+use sp_std::prelude::vec;
 
 pub type AssetBalance = Balance;
 
@@ -94,7 +105,7 @@ impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
 
 impl pallet_asset_conversion_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Fungibles = LocalAndForeignAssets;
+	type Fungibles = NativeAndAssets;
 	type OnChargeAssetTransaction = tx_payment::SwapCreditAdapter<DotLocationV3, AssetConversion>;
 }
 
@@ -107,7 +118,65 @@ impl pallet_asset_registry::Config for Runtime {
 	type BenchmarkHelper = AssetRegistryBenchmarkHelper;
 }
 
-pub type PoolAssetsInstance = pallet_assets::Instance3;
+pub type NativeAndAssets = UnionOf<
+	Balances,
+	Assets,
+	NativeFromLeft,
+	NativeOrWithId<AssetIdForTrustBackedAssets>,
+	AccountId,
+>;
+
+pub type AscendingLocator =
+	Ascending<AccountId, NativeOrWithId<AssetIdForTrustBackedAssets>, PoolIdToAccountId>;
+
+pub type WithFirstAssetLocator = WithFirstAsset<
+	Native,
+	AccountId,
+	NativeOrWithId<AssetIdForTrustBackedAssets>,
+	PoolIdToAccountId,
+>;
+
+impl pallet_asset_conversion::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type HigherPrecisionBalance = sp_core::U256;
+	type AssetKind = NativeOrWithId<AssetIdForTrustBackedAssets>;
+	type Assets = NativeAndAssets;
+	type PoolId = (Self::AssetKind, Self::AssetKind);
+	type PoolLocator = Chain<WithFirstAssetLocator, AscendingLocator>;
+	type PoolAssetId = u32;
+	type PoolAssets = PoolAssets;
+	type PoolSetupFee = ConstU128<0>; // Asset class deposit fees are sufficient to prevent spam
+	type PoolSetupFeeAsset = Native;
+	type PoolSetupFeeTarget = ResolveAssetTo<AssetConversionOrigin, Self::Assets>;
+	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
+	type LPFee = ConstU32<3>; // 0.3% swap fee
+	type PalletId = AssetConversionPalletId;
+	type MaxSwapPathLength = ConstU32<3>;
+	type MintMinLiquidity = ConstU128<100>;
+	type WeightInfo = weights::pallet_asset_conversion::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+parameter_types! {
+	pub AssetsPalletIndex: u32 = <Assets as PalletInfoAccess>::index() as u32;
+	pub const AssetConversionPalletId: PalletId = PalletId(*b"py/ascon");
+	pub const Native: NativeOrWithId<u32> = NativeOrWithId::Native;
+	// we charge no fee for liquidity withdrawal
+	pub const LiquidityWithdrawalFee: Permill = Permill::from_perthousand(0);
+}
+
+ord_parameter_types! {
+	pub const AssetConversionOrigin: sp_runtime::AccountId32 =
+		AccountIdConversion::<sp_runtime::AccountId32>::into_account_truncating(&AssetConversionPalletId::get());
+}
+pub type PoolIdToAccountId = pallet_asset_conversion::AccountIdConverter<
+	AssetConversionPalletId,
+	(staging_xcm::v3::Location, staging_xcm::v3::Location),
+>;
+
+pub type PoolAssetsInstance = pallet_assets::Instance2;
 impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -115,86 +184,20 @@ impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type AssetId = u32;
 	type AssetIdParameter = u32;
 	type Currency = Balances;
-	type CreateOrigin = NeverEnsureOrigin<AccountId>;
-	type ForceOrigin = AssetsForceOrigin;
+	type CreateOrigin =
+		AsEnsureOriginWithArg<EnsureSignedBy<AssetConversionOrigin, sp_runtime::AccountId32>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	// Deposits are zero because creation/admin is limited to Asset Conversion pallet.
 	type AssetDeposit = ConstU128<0>;
-	type AssetAccountDeposit = AssetAccountDeposit;
+	type AssetAccountDeposit = ConstU128<0>;
 	type MetadataDepositBase = ConstU128<0>;
 	type MetadataDepositPerByte = ConstU128<0>;
 	type ApprovalDeposit = ExistentialDeposit;
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
 	type Extra = ();
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	type CallbackHandle = ();
-	type WeightInfo = weights::pallet_assets_pool::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
-}
-
-/// Union fungibles implementation for `Assets`` and `ForeignAssets`.
-pub type LocalAndForeignAssets = fungibles::UnionOf<
-	Assets,
-	ForeignAssets,
-	LocalFromLeft<
-		AssetIdForTrustBackedAssetsConvert<TrustBackedAssetsPalletLocationV3, xcm::v3::Location>,
-		AssetIdForTrustBackedAssets,
-		xcm::v3::Location,
-	>,
-	xcm::v3::Location,
-	AccountId,
->;
-
-/// Union fungibles implementation for [`LocalAndForeignAssets`] and `Balances`.
-pub type NativeAndAssets = fungible::UnionOf<
-	Balances,
-	LocalAndForeignAssets,
-	TargetFromLeft<DotLocationV3, xcm::v3::Location>,
-	xcm::v3::Location,
-	AccountId,
->;
-
-parameter_types! {
-	pub const AssetConversionPalletId: PalletId = PalletId(*b"py/ascon");
-	pub const LiquidityWithdrawalFee: Permill = Permill::from_percent(0);
-	// Storage deposit for pool setup within asset conversion pallet
-	// and pool's lp token creation within assets pallet.
-	pub const PoolSetupFee: Balance = system_para_deposit(1, 4) + AssetDeposit::get();
-}
-
-pub type PoolIdToAccountId = pallet_asset_conversion::AccountIdConverter<
-	AssetConversionPalletId,
-	(xcm::v3::Location, xcm::v3::Location),
->;
-
-impl pallet_asset_conversion::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type HigherPrecisionBalance = sp_core::U256;
-	type AssetKind = xcm::v3::Location;
-	type Assets = NativeAndAssets;
-	type PoolId = (Self::AssetKind, Self::AssetKind);
-	type PoolLocator = pallet_asset_conversion::WithFirstAsset<
-		DotLocationV3,
-		AccountId,
-		Self::AssetKind,
-		PoolIdToAccountId,
-	>;
-	type PoolAssetId = u32;
-	type PoolAssets = PoolAssets;
-	type PoolSetupFee = PoolSetupFee;
-	type PoolSetupFeeAsset = DotLocationV3;
-	type PoolSetupFeeTarget = ResolveAssetTo<xcm_config::RelayTreasuryPalletAccount, Self::Assets>;
-	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
-	type LPFee = ConstU32<3>;
-	type PalletId = AssetConversionPalletId;
-	type MaxSwapPathLength = ConstU32<3>;
-	type MintMinLiquidity = ConstU128<100>;
-	type WeightInfo = weights::pallet_asset_conversion::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = assets_common::benchmarks::AssetPairFactory<
-		DotLocationV3,
-		parachain_info::Pallet<Runtime>,
-		xcm_config::TrustBackedAssetsPalletIndex,
-		Self::AssetKind,
-	>;
 }

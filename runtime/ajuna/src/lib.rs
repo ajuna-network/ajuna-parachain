@@ -54,7 +54,10 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::HoldConsideration,
-		tokens::{imbalance::ResolveTo, PayFromAccount, UnityAssetBalanceConversion},
+		tokens::{
+			imbalance::{ResolveAssetTo, ResolveTo},
+			PayFromAccount, UnityAssetBalanceConversion,
+		},
 		ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
@@ -83,6 +86,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 // XCM Imports
 use staging_xcm::latest::prelude::BodyId;
 
+use crate::{assets::NativeAndAssets, xcm_config::DotLocationV3};
 use parachains_common::{message_queue::NarrowOriginToSibling, BlockNumber, Hash, Header};
 use sp_runtime::traits::{IdentifyAccount, IdentityLookup, Verify};
 
@@ -444,8 +448,11 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	#[allow(deprecated)]
-	type OnChargeTransaction = FungibleAdapter<Balances, ResolveTo<TreasuryAccount, Balances>>;
+	type OnChargeTransaction = tx_payment::FungiblesAdapter<
+		NativeAndAssets,
+		DotLocationV3,
+		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
+	>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -795,8 +802,9 @@ construct_runtime!(
 		// Assets related stuff
 		Assets: pallet_assets::<Instance1> = 90,
 		AssetRegistry: pallet_asset_registry = 91,
-		PoolAssets: pallet_assets::<Instance3> = 92,
+		PoolAssets: pallet_assets::<Instance2> = 92,
 		AssetConversion: pallet_asset_conversion = 93,
+		AssetConversionTxPayment: pallet_asset_conversion_tx_payment = 94,
 	}
 );
 

@@ -20,6 +20,7 @@ use frame_support::{
 	ensure,
 	pallet_prelude::{InvalidTransaction, TransactionValidityError},
 	traits::{
+		fungibles,
 		fungibles::{Balanced as FungiblesBalanced, Inspect as FungiblesInspect},
 		tokens::{Fortitude, Precision, Preservation},
 		Defensive, OnUnbalanced, SameOrOther,
