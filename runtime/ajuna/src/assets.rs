@@ -29,7 +29,7 @@ use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
 use sp_runtime::{traits::AccountIdConversion, Permill};
-use sp_std::prelude::vec;
+use sp_std::vec;
 
 use crate::{
 	tx_payment, weights, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit,
@@ -37,9 +37,6 @@ use crate::{
 };
 
 pub type AssetBalance = Balance;
-
-/// We allow root to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureRoot<AccountId>;
 
 /// always denies creation of assets
 pub struct NoAssetCreators;
@@ -196,7 +193,7 @@ impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_assets_pool::WeightInfo<Runtime>;
 	type CallbackHandle = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
