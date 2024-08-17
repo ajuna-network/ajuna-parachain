@@ -29,23 +29,12 @@ mod tx_payment;
 mod weights;
 pub mod xcm_config;
 
-use crate::gov::EnsureRootOrMoreThanHalfCouncil;
+use crate::{
+	assets::{Native, NativeAndAssets},
+	gov::EnsureRootOrMoreThanHalfCouncil,
+};
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
 use cumulus_primitives_core::AggregateMessageOrigin;
-use smallvec::smallvec;
-use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
-};
-use sp_std::prelude::*;
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -54,10 +43,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::HoldConsideration,
-		tokens::{
-			imbalance::{ResolveAssetTo, ResolveTo},
-			PayFromAccount, UnityAssetBalanceConversion,
-		},
+		tokens::{imbalance::ResolveAssetTo, PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
@@ -71,7 +57,22 @@ use frame_system::{
 	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::legacy::IdentityInfo;
-use pallet_transaction_payment::FungibleAdapter;
+use smallvec::smallvec;
+use sp_api::impl_runtime_apis;
+use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{
+		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify,
+	},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
+};
+use sp_std::prelude::*;
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
+
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 
@@ -86,9 +87,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 // XCM Imports
 use staging_xcm::latest::prelude::BodyId;
 
-use crate::{assets::NativeAndAssets, xcm_config::DotLocationV3};
 use parachains_common::{message_queue::NarrowOriginToSibling, BlockNumber, Hash, Header};
-use sp_runtime::traits::{IdentifyAccount, IdentityLookup, Verify};
 
 parameter_types! {
 	pub const OneDay: BlockNumber = DAYS;
@@ -450,7 +449,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction = tx_payment::FungiblesAdapter<
 		NativeAndAssets,
-		DotLocationV3,
+		Native,
 		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
 	>;
 	type WeightToFee = WeightToFee;

@@ -14,19 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	tx_payment, weights, xcm_config::DotLocationV3, AccountId, AssetConversion, Assets, Balance,
-	Balances, ExistentialDeposit, PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, AJUN,
-	MILLI_AJUN,
-};
 use frame_support::{
 	ord_parameter_types,
 	pallet_prelude::{ConstU32, PalletInfoAccess},
 	parameter_types,
 	traits::{
 		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
-		fungibles,
-		tokens::{imbalance::ResolveAssetTo, ConversionFromAssetBalance, PayFromAccount},
+		tokens::imbalance::ResolveAssetTo,
 		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
 	},
 	PalletId,
@@ -36,6 +30,11 @@ use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
 use sp_runtime::{traits::AccountIdConversion, Permill};
 use sp_std::prelude::vec;
+
+use crate::{
+	tx_payment, weights, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit,
+	PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, AJUN, MILLI_AJUN,
+};
 
 pub type AssetBalance = Balance;
 
@@ -106,7 +105,7 @@ impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
 impl pallet_asset_conversion_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Fungibles = NativeAndAssets;
-	type OnChargeAssetTransaction = tx_payment::SwapCreditAdapter<DotLocationV3, AssetConversion>;
+	type OnChargeAssetTransaction = tx_payment::SwapCreditAdapter<Native, AssetConversion>;
 }
 
 impl pallet_asset_registry::Config for Runtime {
@@ -171,9 +170,10 @@ ord_parameter_types! {
 	pub const AssetConversionOrigin: sp_runtime::AccountId32 =
 		AccountIdConversion::<sp_runtime::AccountId32>::into_account_truncating(&AssetConversionPalletId::get());
 }
+
 pub type PoolIdToAccountId = pallet_asset_conversion::AccountIdConverter<
 	AssetConversionPalletId,
-	(staging_xcm::v3::Location, staging_xcm::v3::Location),
+	(NativeOrWithId<AssetIdForTrustBackedAssets>, NativeOrWithId<AssetIdForTrustBackedAssets>),
 >;
 
 pub type PoolAssetsInstance = pallet_assets::Instance2;
