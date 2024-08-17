@@ -195,7 +195,7 @@ impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = weights::pallet_assets_pool::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	type CallbackHandle = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();

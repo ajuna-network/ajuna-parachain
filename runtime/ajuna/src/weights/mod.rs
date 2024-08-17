@@ -29,7 +29,6 @@ pub mod orml_vesting;
 pub mod pallet_asset_conversion;
 pub mod pallet_asset_registry;
 pub mod pallet_assets;
-pub mod pallet_assets_pool;
 pub mod pallet_balances;
 pub mod pallet_collator_selection;
 pub mod pallet_collective;

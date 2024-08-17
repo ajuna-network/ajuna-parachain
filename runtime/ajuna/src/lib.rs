@@ -833,6 +833,9 @@ mod benches {
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[frame_system, SystemBench::<Runtime>]
 		[orml_vesting, OrmlVestingBench::<Runtime>]
+		[pallet_assets, Assets]
+		// [pallet_assets, PoolAssets] // writes to same file, wait for ommni bencher to fix this
+		[pallet_asset_conversion, AssetConversion]
 		[pallet_balances, Balances]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_collective, Council]
