@@ -452,6 +452,10 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = tx_payment::FungiblesAdapter<
 		NativeAndAssets,
 		Native,
+		// With the current implementation, we will only add the Native balance into the
+		// treasury in practice because the `OnChargeTransaction` converts the other asset
+		// to the Native asset on the spot for fee payment, and converts the refunds back
+		// to the original asset afterward.
 		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
 	>;
 	type WeightToFee = WeightToFee;
