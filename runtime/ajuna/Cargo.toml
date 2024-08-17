@@ -132,6 +132,8 @@ std = [
 	"orml-xcm-support/std",
 	"orml-xtokens/std",
 	"orml-pallets-benchmarking?/std",
+	"pallet-asset-conversion/std",
+	"pallet-asset-conversion-tx-payment/std",
 	"pallet-assets/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
@@ -178,8 +180,6 @@ std = [
     # integritee
 	"pallet-asset-registry/std",
 	"xcm-primitives/std",
-	"pallet-asset-conversion/std",
-	"pallet-asset-conversion-tx-payment/std"
 ]
 
 runtime-benchmarks = [
@@ -197,8 +197,8 @@ runtime-benchmarks = [
 	"orml-vesting/runtime-benchmarks",
 	"orml-xtokens/runtime-benchmarks",
 	"orml-pallets-benchmarking/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-conversion/runtime-benchmarks",
+	"pallet-assets/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
@@ -236,9 +236,9 @@ try-runtime = [
 	"orml-vesting/try-runtime",
 	"orml-xcm/try-runtime",
 	"orml-xtokens/try-runtime",
-	"pallet-assets/try-runtime",
 	"pallet-asset-conversion/try-runtime",
 	"pallet-asset-conversion-tx-payment/try-runtime",
+	"pallet-assets/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-balances/try-runtime",
