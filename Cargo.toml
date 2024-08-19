@@ -23,6 +23,8 @@ hex         = { version = "0.4.3", default-features = false }
 jsonrpsee   = { version = "0.22.4", default-features = false }
 log         = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
+# num-traits feature needed for dex integer sq root:
+primitive-types = { version = "0.12.1", default-features = false, features = ["codec", "num-traits", "scale-info"] }
 serde       = { version = "1.0.56", default-features = false }
 serde_json  = { version = "1.0.113", default-features = false }
 smallvec    = { version = "1.11.1", default-features = false }

@@ -14,6 +14,8 @@ substrate-wasm-builder = { workspace = true, optional = true }
 # General
 hex-literal = { workspace = true, optional = true }
 log         = { workspace = true }
+# num-traits feature needed for dex integer sq root:
+primitive-types = { workspace = true }
 serde       = { workspace = true, features = [ "derive" ], optional = true }
 smallvec    = { workspace = true }
 
@@ -108,6 +110,7 @@ std = [
 	"assets-common/std",
 	"parity-scale-codec/std",
 	"log/std",
+	"primitive-types/std",
 	"scale-info/std",
 	"serde/std",
 	"cumulus-pallet-aura-ext/std",

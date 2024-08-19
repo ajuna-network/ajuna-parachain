@@ -134,9 +134,7 @@ pub type WithFirstAssetLocator = WithFirstAsset<
 impl pallet_asset_conversion::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
-	// Fixme: sp_core::U256 fails to implement some traits for
-	// some reason even though it works in the asset hub
-	type HigherPrecisionBalance = Balance;
+	type HigherPrecisionBalance = sp_core::U256;
 	type AssetKind = NativeOrWithId<AssetIdForTrustBackedAssets>;
 	type Assets = NativeAndAssets;
 	type PoolId = (Self::AssetKind, Self::AssetKind);
