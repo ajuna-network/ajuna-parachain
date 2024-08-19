@@ -7,7 +7,7 @@ mock-signature-host: true
 block: ${env.AJUNA_PARACHAIN_BLOCK_NUMBER}
 db: ./chopsticks/ajuna-parachain.db.sqlite
 runtime-log-level: 5
-# wasm-override: ajuna_runtime.wasm
+#wasm-override: target/release/wbuild/ajuna-runtime/ajuna_runtime.compact.compressed.wasm
 
 # Once we have governance we want to make Alice single councillor and technical committee member.
 import-storage:
