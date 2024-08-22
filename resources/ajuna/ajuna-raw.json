@@ -6,7 +6,9 @@
     "/dns4/boot-node.helikon.io/tcp/8510/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX",
     "/dns4/boot-node.helikon.io/tcp/8512/wss/p2p/12D3KooWA1zjoSfN1CWRMY4nRxD94sSnNAj8UkhD7tsh4K6rwYSX",
     "/dns/ajuna.boot.stake.plus/tcp/30332/wss/p2p/12D3KooWRyAHbMPNL7CuQtm987a6iLKftME3eQpVqBC6fUsjWuof",
-    "/dns/ajuna.boot.stake.plus/tcp/31332/wss/p2p/12D3KooWLXSQdRNS5EXuhpFYiRKHufRsQtb64t4CYj2ah7zx86jA"
+    "/dns/ajuna.boot.stake.plus/tcp/31332/wss/p2p/12D3KooWLXSQdRNS5EXuhpFYiRKHufRsQtb64t4CYj2ah7zx86jA",
+    "/dns/rpc-para.ajuna.network/tcp/30332/p2p/12D3KooWLFfa4J2T3JGZft74q3Wu6kSYHPJHNzLsVhdLPGbAZ9Wf",
+    "/dns/rpc-para.ajuna.network/tcp/30333/ws/p2p/12D3KooWLFfa4J2T3JGZft74q3Wu6kSYHPJHNzLsVhdLPGbAZ9Wf"
   ],
   "telemetryEndpoints": null,
   "protocolId": "ajuna-polkadot",
