@@ -15,15 +15,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	weights, AccountId, Assets, Balance, Balances, Runtime, RuntimeEvent, RuntimeOrigin, AJUN,
-	MILLI_AJUN,
+	tx_payment, weights, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit,
+	PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, AJUN, MILLI_AJUN,
 };
 use frame_support::{
-	pallet_prelude::ConstU32,
-	traits::{ConstU128, EnsureOriginWithArg},
+	ord_parameter_types,
+	pallet_prelude::{ConstU32, PalletInfoAccess},
+	parameter_types,
+	traits::{
+		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
+		tokens::imbalance::ResolveAssetTo,
+		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
+	},
+	PalletId,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSignedBy};
+use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
+use sp_runtime::{traits::AccountIdConversion, Permill};
+use sp_std::vec;
 
 pub type AssetBalance = Balance;
 
@@ -88,6 +98,12 @@ impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
 	}
 }
 
+impl pallet_asset_conversion_tx_payment::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Fungibles = NativeAndAssets;
+	type OnChargeAssetTransaction = tx_payment::SwapCreditAdapter<Native, AssetConversion>;
+}
+
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = EnsureRoot<Self::AccountId>;
@@ -95,4 +111,89 @@ impl pallet_asset_registry::Config for Runtime {
 	type WeightInfo = weights::pallet_asset_registry::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = AssetRegistryBenchmarkHelper;
+}
+
+pub type NativeAndAssets = UnionOf<
+	Balances,
+	Assets,
+	NativeFromLeft,
+	NativeOrWithId<AssetIdForTrustBackedAssets>,
+	AccountId,
+>;
+
+pub type AscendingLocator =
+	Ascending<AccountId, NativeOrWithId<AssetIdForTrustBackedAssets>, PoolIdToAccountId>;
+
+pub type WithFirstAssetLocator = WithFirstAsset<
+	Native,
+	AccountId,
+	NativeOrWithId<AssetIdForTrustBackedAssets>,
+	PoolIdToAccountId,
+>;
+
+impl pallet_asset_conversion::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type HigherPrecisionBalance = sp_core::U256;
+	type AssetKind = NativeOrWithId<AssetIdForTrustBackedAssets>;
+	type Assets = NativeAndAssets;
+	type PoolId = (Self::AssetKind, Self::AssetKind);
+	type PoolLocator = Chain<WithFirstAssetLocator, AscendingLocator>;
+	type PoolAssetId = u32;
+	type PoolAssets = PoolAssets;
+	type PoolSetupFee = ConstU128<0>; // Asset class deposit fees are sufficient to prevent spam
+	type PoolSetupFeeAsset = Native;
+	type PoolSetupFeeTarget = ResolveAssetTo<AssetConversionOrigin, Self::Assets>;
+	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
+	type LPFee = ConstU32<3>; // 0.3% swap fee
+	type PalletId = AssetConversionPalletId;
+	type MaxSwapPathLength = ConstU32<3>;
+	type MintMinLiquidity = ConstU128<100>;
+	type WeightInfo = weights::pallet_asset_conversion::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+parameter_types! {
+	pub AssetsPalletIndex: u32 = <Assets as PalletInfoAccess>::index() as u32;
+	pub const AssetConversionPalletId: PalletId = PalletId(*b"py/ascon");
+	pub const Native: NativeOrWithId<u32> = NativeOrWithId::Native;
+	// we charge no fee for liquidity withdrawal
+	pub const LiquidityWithdrawalFee: Permill = Permill::from_perthousand(0);
+}
+
+ord_parameter_types! {
+	pub const AssetConversionOrigin: sp_runtime::AccountId32 =
+		AccountIdConversion::<sp_runtime::AccountId32>::into_account_truncating(&AssetConversionPalletId::get());
+}
+
+pub type PoolIdToAccountId = pallet_asset_conversion::AccountIdConverter<
+	AssetConversionPalletId,
+	(NativeOrWithId<AssetIdForTrustBackedAssets>, NativeOrWithId<AssetIdForTrustBackedAssets>),
+>;
+
+pub type PoolAssetsInstance = pallet_assets::Instance2;
+impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetId = u32;
+	type AssetIdParameter = u32;
+	type Currency = Balances;
+	type CreateOrigin =
+		AsEnsureOriginWithArg<EnsureSignedBy<AssetConversionOrigin, sp_runtime::AccountId32>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	// Deposits are zero because creation/admin is limited to Asset Conversion pallet.
+	type AssetDeposit = ConstU128<0>;
+	type AssetAccountDeposit = ConstU128<0>;
+	type MetadataDepositBase = ConstU128<0>;
+	type MetadataDepositPerByte = ConstU128<0>;
+	type ApprovalDeposit = ExistentialDeposit;
+	type StringLimit = ConstU32<50>;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
+	type CallbackHandle = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }

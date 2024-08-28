@@ -25,26 +25,16 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod assets;
 mod gov;
 mod proxy_type;
+mod tx_payment;
 mod weights;
 pub mod xcm_config;
 
-use crate::gov::EnsureRootOrMoreThanHalfCouncil;
+use crate::{
+	assets::{Native, NativeAndAssets},
+	gov::EnsureRootOrMoreThanHalfCouncil,
+};
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
 use cumulus_primitives_core::AggregateMessageOrigin;
-use smallvec::smallvec;
-use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
-};
-use sp_std::prelude::*;
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -53,7 +43,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::HoldConsideration,
-		tokens::{imbalance::ResolveTo, PayFromAccount, UnityAssetBalanceConversion},
+		tokens::{imbalance::ResolveAssetTo, PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
@@ -67,7 +57,22 @@ use frame_system::{
 	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::legacy::IdentityInfo;
-use pallet_transaction_payment::FungibleAdapter;
+use smallvec::smallvec;
+use sp_api::impl_runtime_apis;
+use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{
+		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify,
+	},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
+};
+use sp_std::prelude::*;
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
+
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 
@@ -83,7 +88,6 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use staging_xcm::latest::prelude::BodyId;
 
 use parachains_common::{message_queue::NarrowOriginToSibling, BlockNumber, Hash, Header};
-use sp_runtime::traits::{IdentifyAccount, IdentityLookup, Verify};
 
 parameter_types! {
 	pub const OneDay: BlockNumber = DAYS;
@@ -129,7 +133,7 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	pallet_asset_conversion_tx_payment::ChargeAssetTxPayment<Runtime>,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 );
 
@@ -341,7 +345,9 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::XTokens(_) => true,
 			RuntimeCall::OrmlXcm(_) => true,
 			RuntimeCall::Assets(_) => true,
-			RuntimeCall::AssetRegistry(_) => true
+			RuntimeCall::AssetRegistry(_) => true,
+			RuntimeCall::PoolAssets(_) => true,
+			RuntimeCall::AssetConversion(_) => true
 		}
 	}
 }
@@ -443,8 +449,15 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	#[allow(deprecated)]
-	type OnChargeTransaction = FungibleAdapter<Balances, ResolveTo<TreasuryAccount, Balances>>;
+	type OnChargeTransaction = tx_payment::FungiblesAdapter<
+		NativeAndAssets,
+		Native,
+		// With the current implementation, we will only add the Native balance into the
+		// treasury in practice because the `OnChargeTransaction` converts the other asset
+		// to the Native asset on the spot for fee payment, and converts the refunds back
+		// to the original asset afterward.
+		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
+	>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -807,6 +820,9 @@ construct_runtime!(
 		// Assets related stuff
 		Assets: pallet_assets::<Instance1> = 90,
 		AssetRegistry: pallet_asset_registry = 91,
+		PoolAssets: pallet_assets::<Instance2> = 92,
+		AssetConversion: pallet_asset_conversion = 93,
+		AssetConversionTxPayment: pallet_asset_conversion_tx_payment = 94,
 	}
 );
 
@@ -821,6 +837,9 @@ mod benches {
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[frame_system, SystemBench::<Runtime>]
 		[orml_vesting, OrmlVestingBench::<Runtime>]
+		[pallet_assets, Assets]
+		// [pallet_assets, PoolAssets] // writes to same file, wait for ommni bencher to fix this
+		[pallet_asset_conversion, AssetConversion]
 		[pallet_balances, Balances]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_collective, Council]

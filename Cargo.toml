@@ -23,6 +23,8 @@ hex         = { version = "0.4.3", default-features = false }
 jsonrpsee   = { version = "0.22.4", default-features = false }
 log         = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
+# num-traits feature needed for dex integer sq root:
+primitive-types = { version = "0.12.1", default-features = false, features = ["codec", "num-traits", "scale-info"] }
 serde       = { version = "1.0.56", default-features = false }
 serde_json  = { version = "1.0.113", default-features = false }
 smallvec    = { version = "1.11.1", default-features = false }
@@ -43,6 +45,8 @@ frame-system-benchmarking                  = { version = "35.0.0", default-featu
 frame-system-rpc-runtime-api               = { version = "33.0.0", default-features = false }
 frame-try-runtime                          = { version = "0.41.0", default-features = false }
 pallet-assets                              = { version = "36.0.0", default-features = false }
+pallet-asset-conversion                    = { version = "17.0.0", default-features = false }
+pallet-asset-conversion-tx-payment         = { version = "17.0.0", default-features = false }
 pallet-aura                                = { version = "34.0.0", default-features = false }
 pallet-authorship                          = { version = "35.0.0", default-features = false }
 pallet-balances                            = { version = "36.0.0", default-features = false }
