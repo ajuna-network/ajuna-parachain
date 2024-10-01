@@ -44,7 +44,7 @@ use frame_support::{
 	traits::{
 		fungible::HoldConsideration,
 		tokens::{imbalance::ResolveAssetTo, PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, Contains, LinearStoragePrice,
+		AsEnsureOriginWithArg, ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -54,12 +54,16 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
+	pallet_prelude::BlockNumberFor,
 	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::legacy::IdentityInfo;
+use pallet_nfts::{AttributeNamespace, Call as NftsCall};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, ConstU64, Get, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -117,6 +121,9 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// Alias to the public key used for this chain, actually a `MultiSigner`. Like the signature, this
 /// also isn't a fixed size when encoded, as different cryptos have different size public keys.
 pub type AccountPublic = <Signature as Verify>::Signer;
+
+/// Identifier of a collection of NFTs.
+pub type CollectionId = u32;
 
 /// A Block signed with a Justification
 pub type SignedBlock = generic::SignedBlock<Block>;
@@ -347,7 +354,17 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::Assets(_) => true,
 			RuntimeCall::AssetRegistry(_) => true,
 			RuntimeCall::PoolAssets(_) => true,
-			RuntimeCall::AssetConversion(_) => true
+			RuntimeCall::AssetConversion(_) => true,
+			// nft
+			RuntimeCall::Nft(NftsCall::set_attribute { namespace, .. })
+			if namespace == &AttributeNamespace::CollectionOwner =>
+				true,
+			RuntimeCall::Nft(NftsCall::set_attribute { namespace, .. })
+			if namespace != &AttributeNamespace::CollectionOwner =>
+				false,
+			RuntimeCall::Nft(_) => true,
+			// ajuna
+			RuntimeCall::AwesomeAvatars(_) => true,
 		}
 	}
 }
@@ -767,6 +784,127 @@ impl pallet_preimage::Config for Runtime {
 	>;
 }
 
+impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
+
+parameter_types! {
+	pub const AwesomeAvatarsPalletId: PalletId = PalletId(*b"aj/aaatr");
+}
+
+impl pallet_ajuna_awesome_avatars::Config for Runtime {
+	type PalletId = AwesomeAvatarsPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Randomness = Randomness;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type NftHandler = NftTransfer;
+	type FeeChainMaxLength = AffiliateMaxLevel;
+	type AffiliateHandler = AffiliatesAAA;
+	type TournamentHandler = TournamentAAA;
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const CollectionDeposit: Balance = 100 * AJUN;
+	pub const ItemDeposit: Balance = AJUN / 10;
+	pub const StringLimit: u32 = 128;
+	pub const MetadataDepositBase: Balance = deposit(1, 129);
+	pub const AttributeDepositBase: Balance = deposit(1, 0);
+	pub const DepositPerByte: Balance = deposit(0, 1);
+	pub const ApprovalsLimit: u32 = 1;
+	pub const ItemAttributesApprovalsLimit: u32 = 10;
+	pub const MaxTips: u32 = 1;
+	pub const MaxDeadlineDuration: u32 = 1;
+	pub const MaxAttributesPerCall: u32 = 10;
+	// NOTE: BaseCallFilter is used to filter unwanted extrinsic calls since disabling features
+	// result in benchmark errors as extrinsics are disabled.
+	pub NftFeatures: pallet_nfts::PalletFeatures = pallet_nfts::PalletFeatures::all_enabled();
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
+pub struct ParameterGet<const N: u32>;
+
+impl<const N: u32> Get<u32> for ParameterGet<N> {
+	fn get() -> u32 {
+		N
+	}
+}
+
+pub type KeyLimit = ParameterGet<32>;
+pub type ValueLimit = ParameterGet<64>;
+
+impl pallet_nfts::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = CollectionId;
+	type ItemId = Hash;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type Locker = NftTransfer;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = StringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type ApprovalsLimit = ApprovalsLimit;
+	type ItemAttributesApprovalsLimit = ItemAttributesApprovalsLimit;
+	type MaxTips = MaxTips;
+	type MaxDeadlineDuration = MaxDeadlineDuration;
+	type MaxAttributesPerCall = MaxAttributesPerCall;
+	type Features = NftFeatures;
+	type OffchainSignature = Signature;
+	type OffchainPublic = AccountPublic;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = NftBenchmarkHelper;
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const NftTransferPalletId: PalletId = PalletId(*b"aj/nfttr");
+}
+
+impl pallet_ajuna_nft_transfer::Config for Runtime {
+	type PalletId = NftTransferPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = CollectionId;
+	type ItemId = Hash;
+	type ItemConfig = pallet_nfts::ItemConfig;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type NftHelper = Nft;
+}
+
+parameter_types! {
+	pub const AffiliateMaxLevel: u32 = 2;
+}
+
+pub type AffiliatesInstanceAAA = pallet_ajuna_affiliates::Instance1;
+impl pallet_ajuna_affiliates::Config<AffiliatesInstanceAAA> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuleIdentifier = pallet_ajuna_awesome_avatars::types::AffiliateMethods;
+	type RuntimeRule = pallet_ajuna_awesome_avatars::FeePropagationOf<Runtime>;
+	type AffiliateMaxLevel = AffiliateMaxLevel;
+}
+
+parameter_types! {
+	pub const TournamentPalletId1: PalletId = PalletId(*b"aj/trmt1");
+	pub const MinimumTournamentPhaseDuration: BlockNumber = 100;
+}
+
+type TournamentInstanceAAA = pallet_ajuna_tournament::Instance1;
+impl pallet_ajuna_tournament::Config<TournamentInstanceAAA> for Runtime {
+	type PalletId = TournamentPalletId1;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type SeasonId = pallet_ajuna_awesome_avatars::types::SeasonId;
+	type EntityId = pallet_ajuna_awesome_avatars::AvatarIdOf<Runtime>;
+	type RankedEntity = pallet_ajuna_awesome_avatars::types::Avatar<BlockNumberFor<Runtime>>;
+	type MinimumTournamentPhaseDuration = MinimumTournamentPhaseDuration;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime
@@ -817,6 +955,20 @@ construct_runtime!(
 		TechnicalCommitteeMembership: pallet_membership::<Instance1> = 45,
 		Democracy: pallet_democracy = 46,
 
+		// Indexes 50-59 should be reserved for our games.
+		Randomness: pallet_insecure_randomness_collective_flip = 50,
+		AwesomeAvatars: pallet_ajuna_awesome_avatars = 51,
+
+		// Indexes 60-69 should be reserved for NFT related pallets
+		Nft: pallet_nfts = 60,
+		NftTransfer: pallet_ajuna_nft_transfer = 61,
+
+		// Indexes 70-79 should be reserved for Affiliate instances
+		AffiliatesAAA: pallet_ajuna_affiliates::<Instance1> = 70,
+
+		// Indexes 80-89 should be reserved for Tournament instances
+		TournamentAAA: pallet_ajuna_tournament::<Instance1> = 80,
+
 		// Assets related stuff
 		Assets: pallet_assets::<Instance1> = 90,
 		AssetRegistry: pallet_asset_registry = 91,
@@ -860,6 +1012,24 @@ mod benches {
 	);
 	// Use this section if you want to benchmark individual pallets
 	// define_benchmarks!([orml_vesting, OrmlVestingBench::<Runtime>]);
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct NftBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl<CollectionId: From<u16>, ItemId: From<[u8; 32]>>
+pallet_nfts::BenchmarkHelper<CollectionId, ItemId> for NftBenchmarkHelper
+{
+	fn collection(i: u16) -> CollectionId {
+		i.into()
+	}
+	fn item(i: u16) -> ItemId {
+		let mut id = [0_u8; 32];
+		let bytes = i.to_be_bytes();
+		id[0] = bytes[0];
+		id[1] = bytes[1];
+		id.into()
+	}
 }
 
 impl_runtime_apis! {
