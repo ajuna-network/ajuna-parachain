@@ -1018,7 +1018,7 @@ mod benches {
 pub struct NftBenchmarkHelper;
 #[cfg(feature = "runtime-benchmarks")]
 impl<CollectionId: From<u16>, ItemId: From<[u8; 32]>>
-pallet_nfts::BenchmarkHelper<CollectionId, ItemId> for NftBenchmarkHelper
+	pallet_nfts::BenchmarkHelper<CollectionId, ItemId> for NftBenchmarkHelper
 {
 	fn collection(i: u16) -> CollectionId {
 		i.into()
