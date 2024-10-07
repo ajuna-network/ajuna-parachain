@@ -200,6 +200,11 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
+ "pallet-ajuna-affiliates",
+ "pallet-ajuna-awesome-avatars",
+ "pallet-ajuna-awesome-avatars-benchmarking",
+ "pallet-ajuna-nft-transfer",
+ "pallet-ajuna-tournament",
  "pallet-asset-conversion",
  "pallet-asset-conversion-tx-payment",
  "pallet-asset-registry",
@@ -211,9 +216,11 @@ dependencies = [
  "pallet-collective",
  "pallet-democracy",
  "pallet-identity",
+ "pallet-insecure-randomness-collective-flip",
  "pallet-membership",
  "pallet-message-queue",
  "pallet-multisig",
+ "pallet-nfts",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-scheduler",
@@ -424,7 +431,7 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "paste",
- "rustc_version",
+ "rustc_version 0.4.0",
  "zeroize",
 ]
 
@@ -2437,7 +2444,7 @@ dependencies = [
  "curve25519-dalek-derive",
  "digest 0.10.7",
  "fiat-crypto",
- "rustc_version",
+ "rustc_version 0.4.0",
  "subtle 2.6.1",
  "zeroize",
 ]
@@ -2624,7 +2631,7 @@ dependencies = [
  "convert_case",
  "proc-macro2",
  "quote",
- "rustc_version",
+ "rustc_version 0.4.0",
  "syn 2.0.68",
 ]
 
@@ -4166,7 +4173,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core",
 ]
 
 [[package]]
@@ -6281,8 +6288,8 @@ dependencies = [
 
 [[package]]
 name = "orml-pallets-benchmarking"
-version = "0.9.0"
-source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.9.0#4629eb5531d6ba92c51b24eddefffe3be6561c4d"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6406,6 +6413,91 @@ name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
+
+[[package]]
+name = "pallet-ajuna-affiliates"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ajuna-awesome-avatars"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "log",
+ "pallet-ajuna-affiliates",
+ "pallet-ajuna-nft-transfer",
+ "pallet-ajuna-tournament",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ajuna-awesome-avatars-benchmarking"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "log",
+ "pallet-ajuna-affiliates",
+ "pallet-ajuna-awesome-avatars",
+ "pallet-ajuna-nft-transfer",
+ "pallet-ajuna-tournament",
+ "pallet-balances",
+ "pallet-insecure-randomness-collective-flip",
+ "pallet-nfts",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ajuna-nft-transfer"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ajuna-tournament"
+version = "0.13.0"
+source = "git+https://github.com/ajuna-network/ajuna-pallets.git?tag=v0.13.0#fa8c35e865c8bf00eea92b726eb287adeb25d201"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
 
 [[package]]
 name = "pallet-asset-conversion"
@@ -6986,6 +7078,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-insecure-randomness-collective-flip"
+version = "23.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdbcd8635732846a585ee77ecd038e2701e7061ba89eb758d999d52931b02235"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "safe-mix",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-membership"
 version = "35.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7055,6 +7162,25 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-nfts"
+version = "29.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49c68c96f03ef2dd6c23072f315d6ef3e1b4664795f29aab5962db8cc9062ad3"
+dependencies = [
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -10251,6 +10377,15 @@ checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
 name = "rustc_version"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
+dependencies = [
+ "semver 0.9.0",
+]
+
+[[package]]
+name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
@@ -10450,6 +10585,15 @@ name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
+
+[[package]]
+name = "safe-mix"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d3d055a2582e6b00ed7a31c1524040aa391092bf636328350813f3a0605215c"
+dependencies = [
+ "rustc_version 0.2.3",
+]
 
 [[package]]
 name = "safe_arch"
@@ -11933,6 +12077,15 @@ dependencies = [
 
 [[package]]
 name = "semver"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
+dependencies = [
+ "semver-parser",
+]
+
+[[package]]
+name = "semver"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
@@ -12326,7 +12479,7 @@ dependencies = [
  "curve25519-dalek 4.1.3",
  "rand_core 0.6.4",
  "ring 0.17.8",
- "rustc_version",
+ "rustc_version 0.4.0",
  "sha2 0.10.8",
  "subtle 2.6.1",
 ]
@@ -15082,7 +15235,7 @@ version = "0.51.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca229916c5ee38c2f2bc1e9d8f04df975b4bd93f9955dc69fabb5d91270045c9"
 dependencies = [
- "windows-core 0.51.1",
+ "windows-core",
  "windows-targets 0.48.5",
 ]
 
@@ -15093,15 +15246,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
 dependencies = [
  "windows-targets 0.48.5",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
-dependencies = [
- "windows-targets 0.52.5",
 ]
 
 [[package]]
