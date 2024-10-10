@@ -12,7 +12,10 @@
     "/dns/rpc-para.ajuna.network/tcp/30332/p2p/12D3KooWLFfa4J2T3JGZft74q3Wu6kSYHPJHNzLsVhdLPGbAZ9Wf",
     "/dns/rpc-para.ajuna.network/tcp/30333/ws/p2p/12D3KooWLFfa4J2T3JGZft74q3Wu6kSYHPJHNzLsVhdLPGbAZ9Wf",
     "/dns/ajuna-polkadot-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWAPXggzmvxX8pefwGMNXDzUwigHEKCmrwZzMpySJbYwUK",
-    "/dns/ajuna-polkadot-boot-ng.dwellir.com/tcp/30363/p2p/12D3KooWAPXggzmvxX8pefwGMNXDzUwigHEKCmrwZzMpySJbYwUK"
+    "/dns/ajuna-polkadot-boot-ng.dwellir.com/tcp/30363/p2p/12D3KooWAPXggzmvxX8pefwGMNXDzUwigHEKCmrwZzMpySJbYwUK",
+    "/dns/ajuna-polkadot-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWAPXggzmvxX8pefwGMNXDzUwigHEKCmrwZzMpySJbYwUK",
+    "/dns/ajuna-bootnode.radiumblock.com/tcp/30333/p2p/12D3KooWCfjWNEmYcGJwF8S1xizhSHyFHwwDLmQxQCr2Wu9JUTYw",
+    "/dns/ajuna-bootnode.radiumblock.com/tcp/30336/wss/p2p/12D3KooWCfjWNEmYcGJwF8S1xizhSHyFHwwDLmQxQCr2Wu9JUTYw"
   ],
   "telemetryEndpoints": null,
   "protocolId": "ajuna-polkadot",
