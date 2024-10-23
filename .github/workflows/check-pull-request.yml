@@ -189,7 +189,7 @@ jobs:
       matrix:
         binary: [ ajuna-node ]
     env:
-      ZOMBIENET_VERSION: v1.3.82
+      ZOMBIENET_VERSION: v1.3.116
     steps:
       - uses: actions/checkout@v4
         with:
