@@ -17,6 +17,7 @@
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
 	/// Key management CLI utilities
@@ -44,7 +45,9 @@ pub enum Subcommand {
 	/// Remove the whole chain.
 	PurgeChain(cumulus_client_cli::PurgeChainCmd),
 
-	/// Export the genesis state of the parachain.
+	/// Export the genesis head data of the parachain.
+	///
+	/// Head data is the encoded block header.
 	#[command(alias = "export-genesis-state")]
 	ExportGenesisHead(cumulus_client_cli::ExportGenesisHeadCommand),
 
@@ -95,7 +98,7 @@ pub struct Cli {
 
 	/// Relay chain arguments
 	#[arg(raw = true)]
-	pub relaychain_args: Vec<String>,
+	pub relay_chain_args: Vec<String>,
 }
 
 #[derive(Debug)]
