@@ -486,8 +486,6 @@ parameter_types! {
 	pub const ZeroPercent: Permill = Permill::from_percent(0);
 	pub const FivePercent: Permill = Permill::from_percent(5);
 	pub const FiftyPercent: Permill = Permill::from_percent(50);
-	pub const MinimumProposalBond: Balance = AJUN;
-	pub const MaximumProposalBond: Balance = 500 * AJUN;
 	pub const Fortnightly: BlockNumber = 14 * DAYS;
 	pub const Weekly: BlockNumber = 7 * DAYS;
 	pub const Daily: BlockNumber = DAYS;
@@ -503,13 +501,8 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type ApproveOrigin = EnsureRootOrMoreThanHalfCouncil;
 	type RejectOrigin = EnsureRootOrMoreThanHalfCouncil;
 	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = ();
-	type ProposalBond = FivePercent;
-	type ProposalBondMinimum = MinimumProposalBond;
-	type ProposalBondMaximum = MaximumProposalBond;
 	type SpendPeriod = OneWeek;
 	type Burn = ZeroPercent;
 	type PalletId = TreasuryPalletId;
