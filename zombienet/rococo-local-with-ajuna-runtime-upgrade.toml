@@ -41,25 +41,25 @@ cumulus_based = true
 name = "ajuna-collator"
 # This should ideally be the old collator as this is used
 # to build the modified chain-spec.
-command = "~/bin/ajuna-node-v500"
+command = "~/bin/ajuna-node-v800-aaa-v15"
 
 [[parachains.collators]]
 name = "ajuna-collator-1"
 validator = true
-command = "~/bin/ajuna-node-v500"
+command = "~/bin/ajuna-node-v800-aaa-v15"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9954
 
 [[parachains.collators]]
 name = "ajuna-collator-2"
 validator = true
-command = "~/bin/ajuna-node-v600-rc1"
+command = "~/bin/ajuna-node-v800-aaa-v15"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9955
 
 [[parachains.collators]]
 name = "ajuna-collator-3"
 validator = true
-command = "~/bin/ajuna-node-v600-rc1"
+command = "~/bin/ajuna-node-v800-aaa-v15"
 args = ["-lxcm=trace,runtime=debug"]
 ws_port = 9956
