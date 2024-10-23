@@ -496,7 +496,7 @@ parameter_types! {
 parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const SpendPayoutPeriod: u32 = 6 * DAYS;
-	pub const MaxBalance: Balance = Balance::max_value();
+	pub const MaxBalance: Balance = Balance::MAX;
 }
 
 impl pallet_treasury::Config for Runtime {
