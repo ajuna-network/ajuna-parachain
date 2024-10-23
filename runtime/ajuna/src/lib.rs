@@ -161,7 +161,7 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
-type Migrations = (cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,);
+type Migrations = ();
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
@@ -223,7 +223,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("ajuna"),
 	impl_name: create_runtime_str!("ajuna"),
 	authoring_version: 1,
-	spec_version: 800,
+	spec_version: 801,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
