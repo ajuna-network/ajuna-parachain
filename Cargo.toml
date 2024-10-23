@@ -155,11 +155,11 @@ parachains-common                       = { version = "17.0.0", default-features
 staging-parachain-info                  = { version = "0.16.0", default-features = false }
 
 # ORML
-orml-traits = { version = "0.13.0", default-features = false }
-orml-vesting = { version = "0.13.0", default-features = false }
-orml-xcm = { version = "0.13.0", default-features = false }
-orml-xcm-support = { version = "0.13.0", default-features = false }
-orml-xtokens = { version = "0.13.0", default-features = false }
+orml-traits = { version = "1.0.0", default-features = false }
+orml-vesting = { version = "1.0.0", default-features = false }
+orml-xcm = { version = "1.0.0", default-features = false }
+orml-xcm-support = { version = "1.0.0", default-features = false }
+orml-xtokens = { version = "1.0.0", default-features = false }
 
 # Runtime
 ajuna-runtime = { path = "runtime/ajuna" }
