@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-node"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "ajuna-runtime",
  "async-trait",
@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-runtime"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "assets-common",
  "cumulus-pallet-aura-ext",
@@ -3372,9 +3372,9 @@ dependencies = [
 
 [[package]]
 name = "frame-executive"
-version = "38.0.0"
+version = "38.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c365bf3879de25bbee28e9584096955a02fbe8d7e7624e10675800317f1cee5b"
+checksum = "e305d8c5cf9f884795d3c57c899be86e3a476e5b5f914fa0ffefb5afd9cba5c5"
 dependencies = [
  "aquamarine",
  "frame-support",
@@ -12646,9 +12646,9 @@ dependencies = [
 
 [[package]]
 name = "sp-api-proc-macro"
-version = "20.0.0"
+version = "20.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9aadf9e97e694f0e343978aa632938c5de309cbcc8afed4136cb71596737278"
+checksum = "5e3ec5a1a14307e21d2356e73e01573b6c82330a7e30eaceed59a90161b0c2d2"
 dependencies = [
  "Inflector",
  "blake2 0.10.6",
@@ -12969,9 +12969,9 @@ dependencies = [
 
 [[package]]
 name = "sp-io"
-version = "38.0.0"
+version = "38.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ef7eb561bb4839cc8424ce58c5ea236cbcca83f26fcc0426d8decfe8aa97d4"
+checksum = "61e20e9d9fe236466c1e38add64b591237c58540a07408407869d52d0e79fd18"
 dependencies = [
  "bytes",
  "docify",
