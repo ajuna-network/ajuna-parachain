@@ -25,17 +25,13 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod assets;
 mod gov;
 mod proxy_type;
-mod tx_payment;
 mod weights;
 pub mod xcm_config;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmark_helpers;
 
-use crate::{
-	assets::{Native, NativeAndAssets},
-	gov::EnsureRootOrMoreThanHalfCouncil,
-};
+use crate::{assets::NativeAndAssets, gov::EnsureRootOrMoreThanHalfCouncil};
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
@@ -47,9 +43,7 @@ use frame_support::{
 	traits::{
 		AsEnsureOriginWithArg, ConstBool, Contains, LinearStoragePrice,
 		fungible::{HoldConsideration, NativeOrWithId},
-		tokens::{
-			UnityAssetBalanceConversion, imbalance::ResolveAssetTo, pay::PayAssetFromAccount,
-		},
+		tokens::{UnityAssetBalanceConversion, imbalance::ResolveTo, pay::PayAssetFromAccount},
 	},
 	weights::{
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -473,15 +467,8 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = tx_payment::FungiblesAdapter<
-		NativeAndAssets,
-		Native,
-		// With the current implementation, we will only add the Native balance into the
-		// treasury in practice because the `OnChargeTransaction` converts the other asset
-		// to the Native asset on the spot for fee payment, and converts the refunds back
-		// to the original asset afterward.
-		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
-	>;
+	type OnChargeTransaction =
+		pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<TreasuryAccount, Balances>>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
