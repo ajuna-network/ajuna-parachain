@@ -27,7 +27,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_NIGHTLY_VERSION: 2024-11-19
+  RUST_NIGHTLY_VERSION: 2025-08-30
 
 jobs:
   fmt:
