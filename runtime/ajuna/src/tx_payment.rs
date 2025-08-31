@@ -18,16 +18,15 @@ use frame_support::{
 	ensure,
 	pallet_prelude::{InvalidTransaction, TransactionValidityError},
 	traits::{
-		fungibles,
+		Defensive, OnUnbalanced, SameOrOther, fungibles,
 		tokens::{Fortitude, Precision, Preservation},
-		Defensive, OnUnbalanced, SameOrOther,
 	},
 };
 use pallet_transaction_payment::OnChargeTransaction;
 use sp_core::Get;
 use sp_runtime::{
-	traits::{DispatchInfoOf, PostDispatchInfoOf, Zero},
 	Saturating,
+	traits::{DispatchInfoOf, PostDispatchInfoOf, Zero},
 };
 
 /// Implements [`OnChargeTransaction`] for [`pallet_transaction_payment`], where the asset class
@@ -114,5 +113,15 @@ where
 		// implement `Imbalanced` trait.
 		OU::on_unbalanced(adjusted_paid);
 		Ok(())
+	}
+
+	fn can_withdraw_fee(
+		who: &T::AccountId,
+		call: &T::RuntimeCall,
+		dispatch_info: &DispatchInfoOf<T::RuntimeCall>,
+		fee: Self::Balance,
+		tip: Self::Balance,
+	) -> Result<(), TransactionValidityError> {
+		todo!()
 	}
 }

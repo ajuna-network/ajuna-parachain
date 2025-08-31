@@ -15,24 +15,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	weights, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit, PoolAssets,
-	Runtime, RuntimeEvent, RuntimeOrigin, TreasuryAccount, AJUN, MILLI_AJUN,
+	AJUN, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit, MILLI_AJUN,
+	PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, TreasuryAccount, weights,
 };
 use frame_support::{
-	ord_parameter_types,
+	PalletId, ord_parameter_types,
 	pallet_prelude::{ConstU32, PalletInfoAccess},
 	parameter_types,
 	traits::{
+		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
 		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
 		tokens::imbalance::ResolveAssetTo,
-		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
 	},
-	PalletId,
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
-use sp_runtime::{traits::AccountIdConversion, Permill};
+use sp_runtime::{Permill, traits::AccountIdConversion};
 use sp_std::vec;
 
 pub type AssetBalance = Balance;
@@ -72,6 +71,7 @@ impl pallet_assets::Config<MainAssetsInstance> for Runtime {
 	type ApprovalDeposit = ConstU128<{ 10 * MILLI_AJUN }>;
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
+	type Holder = ();
 	type Extra = ();
 	type CallbackHandle = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
@@ -107,10 +107,10 @@ impl pallet_asset_conversion_tx_payment::Config for Runtime {
 		AssetConversion,
 		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
 	>;
+	type WeightInfo = ();
 }
 
 impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
 	type WeightInfo = weights::pallet_asset_registry::WeightInfo<Runtime>;
@@ -201,4 +201,5 @@ impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type CallbackHandle = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type Holder = ();
 }

@@ -97,7 +97,7 @@ orml-traits = { workspace = true }
 orml-vesting = { workspace = true }
 orml-xcm = { workspace = true }
 orml-xcm-support = { workspace = true }
-orml-xtokens = { workspace = true }
+#orml-xtokens = { workspace = true }
 
 # Ajuna Pallets
 pallet-ajuna-affiliates                   = { workspace = true }
@@ -140,7 +140,7 @@ std = [
     "orml-vesting/std",
     "orml-xcm/std",
     "orml-xcm-support/std",
-    "orml-xtokens/std",
+#    "orml-xtokens/std",
     "orml-pallets-benchmarking?/std",
     "pallet-asset-conversion/std",
     "pallet-asset-conversion-tx-payment/std",
@@ -213,7 +213,7 @@ runtime-benchmarks = [
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "orml-vesting/runtime-benchmarks",
-    "orml-xtokens/runtime-benchmarks",
+#    "orml-xtokens/runtime-benchmarks",
     "orml-pallets-benchmarking/runtime-benchmarks",
     "pallet-asset-conversion/runtime-benchmarks",
     "pallet-assets/runtime-benchmarks",
@@ -260,7 +260,7 @@ try-runtime = [
     "frame-try-runtime/try-runtime",
     "orml-vesting/try-runtime",
     "orml-xcm/try-runtime",
-    "orml-xtokens/try-runtime",
+#    "orml-xtokens/try-runtime",
     "pallet-asset-conversion/try-runtime",
     "pallet-asset-conversion-tx-payment/try-runtime",
     "pallet-assets/try-runtime",

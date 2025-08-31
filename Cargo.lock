@@ -199,7 +199,6 @@ dependencies = [
  "orml-vesting",
  "orml-xcm",
  "orml-xcm-support",
- "orml-xtokens",
  "pallet-ajuna-affiliates",
  "pallet-ajuna-awesome-avatars",
  "pallet-ajuna-awesome-avatars-benchmarking",
@@ -7583,27 +7582,6 @@ dependencies = [
  "frame-support",
  "orml-traits",
  "parity-scale-codec",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "staging-xcm-executor",
-]
-
-[[package]]
-name = "orml-xtokens"
-version = "1.4.0"
-source = "git+https://github.com/ajuna-network/open-runtime-module-library?branch=cl%2Fpolkadot-stable2506-1#8beef624b6c3821b41f0c35f0e85a1ea244c0cd3"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "orml-traits",
- "orml-xcm-support",
- "pallet-xcm",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",

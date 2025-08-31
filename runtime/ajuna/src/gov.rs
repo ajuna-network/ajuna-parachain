@@ -15,8 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	weights, AccountId, Balance, BlockNumber, Council, OriginCaller, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, TechnicalCommittee, AJUN, DAYS,
+	AJUN, AccountId, Balance, BlockNumber, Council, DAYS, OriginCaller, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, TechnicalCommittee, weights,
 };
 use frame_support::{
 	parameter_types,
@@ -68,6 +68,9 @@ impl pallet_collective::Config<CouncilCollectiveInstance> for Runtime {
 	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = EnsureRootOrAllCouncil;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = EnsureRootOrAllCouncil;
+	type KillOrigin = EnsureRootOrAllCouncil;
+	type Consideration = ();
 }
 
 /// Helper pallet to manage Council members.
@@ -105,6 +108,9 @@ impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = EnsureRootOrAllCouncil;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = EnsureRootOrAllCouncil;
+	type KillOrigin = EnsureRootOrAllCouncil;
+	type Consideration = ();
 }
 
 /// Helper pallet to manage TechnicalCommittee members.

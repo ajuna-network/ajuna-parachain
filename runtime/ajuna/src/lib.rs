@@ -39,28 +39,27 @@ use crate::{
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
-	construct_runtime,
+	PalletId, construct_runtime,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
 	pallet_prelude::ConstU32,
 	parameter_types,
 	traits::{
+		AsEnsureOriginWithArg, ConstBool, Contains, LinearStoragePrice,
 		fungible::{HoldConsideration, NativeOrWithId},
 		tokens::{
-			imbalance::ResolveAssetTo, pay::PayAssetFromAccount, UnityAssetBalanceConversion,
+			UnityAssetBalanceConversion, imbalance::ResolveAssetTo, pay::PayAssetFromAccount,
 		},
-		AsEnsureOriginWithArg, ConstBool, Contains, LinearStoragePrice,
 	},
 	weights::{
-		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial, constants::WEIGHT_REF_TIME_PER_SECOND,
 	},
-	PalletId,
 };
 use frame_system::{
+	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 	limits::{BlockLength, BlockWeights},
 	pallet_prelude::BlockNumberFor,
-	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::legacy::IdentityInfo;
 use pallet_nfts::{AttributeNamespace, Call as NftsCall};
@@ -68,14 +67,13 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU64, Get, OpaqueMetadata};
+use sp_core::{ConstU64, Get, OpaqueMetadata, crypto::KeyTypeId};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	ApplyExtrinsicResult, Cow, ExtrinsicInclusionMode, MultiSignature, generic, impl_opaque_keys,
 	traits::{
 		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify,
 	},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -97,7 +95,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use staging_xcm::latest::prelude::BodyId;
 
 use parachains_common::{
-	message_queue::NarrowOriginToSibling, AssetIdForTrustBackedAssets, BlockNumber, Hash, Header,
+	AssetIdForTrustBackedAssets, BlockNumber, Hash, Header, message_queue::NarrowOriginToSibling,
 };
 
 parameter_types! {
@@ -227,14 +225,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("ajuna"),
-	impl_name: create_runtime_str!("ajuna"),
+	spec_name: Cow::Borrowed("ajuna"),
+	impl_name: Cow::Borrowed("ajuna"),
 	authoring_version: 1,
 	spec_version: 807,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
@@ -356,7 +354,7 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::TechnicalCommittee(_) |
 			RuntimeCall::TechnicalCommitteeMembership(_) |
 			RuntimeCall::Democracy(_) => true,
-			RuntimeCall::XTokens(_) => true,
+			// RuntimeCall::XTokens(_) => true,
 			RuntimeCall::OrmlXcm(_) => true,
 			RuntimeCall::Assets(_) => true,
 			RuntimeCall::AssetRegistry(_) => true,
@@ -428,6 +426,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -463,6 +462,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type MaxFreezes = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -486,6 +486,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -528,6 +529,7 @@ impl pallet_treasury::Config for Runtime {
 	// which implies that we can use the simple unity conversion.
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = SpendPayoutPeriod;
+	type BlockNumberProvider = System;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmark_helpers::treasury::TreasuryArguments;
 }
@@ -572,6 +574,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 impl staging_parachain_info::Config for Runtime {}
@@ -623,6 +627,7 @@ impl pallet_session::Config for Runtime {
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
+	type DisablingStrategy = ();
 }
 
 impl pallet_aura::Config for Runtime {
@@ -681,6 +686,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -719,6 +725,8 @@ impl pallet_identity::Config for Runtime {
 	type PendingUsernameExpiration = ConstU32<100>;
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
+	type UsernameDeposit = BasicDeposit;
+	type UsernameGracePeriod = ConstU32<{ 3 * DAYS }>;
 	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
 }
 
@@ -746,6 +754,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 }
 
 parameter_types! {
@@ -766,6 +775,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Runtime>;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -796,7 +806,6 @@ parameter_types! {
 
 impl pallet_ajuna_awesome_avatars::Config for Runtime {
 	type PalletId = AwesomeAvatarsPalletId;
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Randomness = Randomness;
 	type KeyLimit = KeyLimit;
@@ -864,6 +873,7 @@ impl pallet_nfts::Config for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = NftBenchmarkHelper;
 	type WeightInfo = ();
+	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 }
 
 parameter_types! {
@@ -872,7 +882,6 @@ parameter_types! {
 
 impl pallet_ajuna_nft_transfer::Config for Runtime {
 	type PalletId = NftTransferPalletId;
-	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type ItemId = Hash;
 	type ItemConfig = pallet_nfts::ItemConfig;
@@ -887,7 +896,6 @@ parameter_types! {
 
 pub type AffiliatesInstanceAAA = pallet_ajuna_affiliates::Instance1;
 impl pallet_ajuna_affiliates::Config<AffiliatesInstanceAAA> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuleIdentifier = pallet_ajuna_awesome_avatars::types::AffiliateMethods;
 	type RuntimeRule = pallet_ajuna_awesome_avatars::FeePropagationOf<Runtime>;
 	type AffiliateMaxLevel = AffiliateMaxLevel;
@@ -901,7 +909,6 @@ parameter_types! {
 type TournamentInstanceAAA = pallet_ajuna_tournament::Instance1;
 impl pallet_ajuna_tournament::Config<TournamentInstanceAAA> for Runtime {
 	type PalletId = TournamentPalletId1;
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type SeasonId = pallet_ajuna_awesome_avatars::types::SeasonId;
 	type EntityId = pallet_ajuna_awesome_avatars::AvatarIdOf<Runtime>;
@@ -943,7 +950,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		// DmpQueue: cumulus_pallet_dmp_queue = 33,
 		MessageQueue: pallet_message_queue = 34,
-		XTokens: orml_xtokens = 35,
+		// XTokens: orml_xtokens = 35,
 		OrmlXcm: orml_xcm = 36,
 
 		// Governance
