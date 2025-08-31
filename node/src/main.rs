@@ -20,7 +20,6 @@
 #![warn(unused_extern_crates)]
 
 mod chain_spec;
-mod chain_spec_utils;
 
 use polkadot_omni_node_lib::{CliConfig as CliConfigT, NODE_VERSION, RunConfig, run};
 

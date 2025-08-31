@@ -9,7 +9,7 @@ version.workspace    = true
 
 [dependencies]
 # General
-color-eyre = { workspace = true }
+color-eyre = { workspace = true, default-features = true }
 serde      = { workspace = true, features = ["std", "derive"] }
 jsonrpsee  = { workspace = true, features = ["server"] }
 futures    = { workspace = true, features = ["std"] }

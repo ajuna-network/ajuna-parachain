@@ -98,8 +98,7 @@ name = "ajuna-node"
 version = "0.8.7"
 dependencies = [
  "ajuna-runtime",
- "async-trait",
- "clap",
+ "color-eyre",
  "color-print",
  "cumulus-client-cli",
  "cumulus-client-collator",
@@ -121,13 +120,13 @@ dependencies = [
  "frame-try-runtime",
  "futures",
  "jsonrpsee",
- "log",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-cli",
+ "polkadot-omni-node-lib",
  "polkadot-primitives",
  "sc-basic-authorship",
  "sc-chain-spec",
@@ -1948,6 +1947,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "color-eyre"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5920befb47832a6d61ee3a3a846565cfa39b331331e68a3b1d1116630f2f26d"
+dependencies = [
+ "backtrace",
+ "color-spantrace",
+ "eyre",
+ "indenter",
+ "once_cell",
+ "owo-colors",
+ "tracing-error",
+]
+
+[[package]]
 name = "color-print"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1966,6 +1980,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
+]
+
+[[package]]
+name = "color-spantrace"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8b88ea9df13354b55bc7234ebcce36e6ef896aca2e42a15de9e10edce01b427"
+dependencies = [
+ "once_cell",
+ "owo-colors",
+ "tracing-core",
+ "tracing-error",
 ]
 
 [[package]]
@@ -3848,6 +3874,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "eyre"
+version = "0.6.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cd915d99f24784cdc19fd37ef22b97e3ff0ae756c7e492e9fbfe897d61e2aec"
+dependencies = [
+ "indenter",
+ "once_cell",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5519,6 +5555,12 @@ dependencies = [
  "proc-macro2",
  "quote",
 ]
+
+[[package]]
+name = "indenter"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "964de6e86d545b246d84badc0fef527924ace5134f30641c203ef52ba83f58d5"
 
 [[package]]
 name = "indexmap"
@@ -7608,6 +7650,12 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-executor",
 ]
+
+[[package]]
+name = "owo-colors"
+version = "4.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48dd4f4a2c8405440fd0462561f0e5806bd0f77e86f51c761481bdd4018b545e"
 
 [[package]]
 name = "pallet-ajuna-affiliates"
@@ -10140,6 +10188,90 @@ dependencies = [
 ]
 
 [[package]]
+name = "polkadot-omni-node-lib"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a75454f7a7222ba0e1e8894138a8f963b92e8ea8cbd75b2dbf00969b7a79778"
+dependencies = [
+ "async-trait",
+ "clap",
+ "color-print",
+ "cumulus-client-bootnodes",
+ "cumulus-client-cli",
+ "cumulus-client-collator",
+ "cumulus-client-consensus-aura",
+ "cumulus-client-consensus-common",
+ "cumulus-client-consensus-proposer",
+ "cumulus-client-consensus-relay-chain",
+ "cumulus-client-parachain-inherent",
+ "cumulus-client-service",
+ "cumulus-primitives-aura",
+ "cumulus-primitives-core",
+ "cumulus-relay-chain-interface",
+ "docify",
+ "frame-benchmarking-cli",
+ "frame-system-rpc-runtime-api",
+ "futures",
+ "futures-timer",
+ "jsonrpsee",
+ "log",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-cli",
+ "polkadot-primitives",
+ "sc-basic-authorship",
+ "sc-chain-spec",
+ "sc-cli",
+ "sc-client-api",
+ "sc-client-db",
+ "sc-consensus",
+ "sc-consensus-manual-seal",
+ "sc-executor",
+ "sc-keystore",
+ "sc-network",
+ "sc-network-statement",
+ "sc-network-sync",
+ "sc-offchain",
+ "sc-rpc",
+ "sc-runtime-utilities",
+ "sc-service",
+ "sc-statement-store",
+ "sc-sysinfo",
+ "sc-telemetry",
+ "sc-tracing",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "scale-info",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-statement-store",
+ "sp-storage",
+ "sp-timestamp",
+ "sp-transaction-pool",
+ "sp-version",
+ "sp-weights",
+ "staging-chain-spec-builder",
+ "substrate-frame-rpc-system",
+ "substrate-prometheus-endpoint",
+ "substrate-state-trie-migration-rpc",
+ "subxt-metadata",
+]
+
+[[package]]
 name = "polkadot-overseer"
 version = "24.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12122,6 +12254,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c25df970b58c05e8381a1ead6f5708e3539aefa9212d311866fed64f141214e7"
 dependencies = [
  "array-bytes 6.2.3",
+ "clap",
  "docify",
  "memmap2 0.9.8",
  "parity-scale-codec",
@@ -12504,6 +12637,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-consensus-manual-seal"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "193c34eb381d9041b1b319a5e0f026736c9ab3239d8a2574622fffa217542918"
+dependencies = [
+ "assert_matches",
+ "async-trait",
+ "futures",
+ "futures-timer",
+ "jsonrpsee",
+ "log",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-aura",
+ "sc-consensus-babe",
+ "sc-consensus-epochs",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-consensus-babe",
+ "sp-consensus-slots",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-timestamp",
+ "substrate-prometheus-endpoint",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "sc-consensus-slots"
 version = "0.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12757,6 +12926,27 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "sc-network-statement"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7969b9ba2a64f68b3befc952792c6ebfeefba4e47336ca9dbe77c7fafd12c8ab"
+dependencies = [
+ "array-bytes 6.2.3",
+ "async-channel 1.9.0",
+ "futures",
+ "log",
+ "parity-scale-codec",
+ "sc-network",
+ "sc-network-common",
+ "sc-network-sync",
+ "sc-network-types",
+ "sp-consensus",
+ "sp-runtime",
+ "sp-statement-store",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -13086,6 +13276,26 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.4",
  "sp-core",
+]
+
+[[package]]
+name = "sc-statement-store"
+version = "22.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "469ecfa2a9c0093a007a44c3a52a30e5c79aa59f4a2490dd944b22c91c3ad626"
+dependencies = [
+ "log",
+ "parity-db",
+ "parking_lot 0.12.4",
+ "sc-client-api",
+ "sc-keystore",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "sp-statement-store",
+ "substrate-prometheus-endpoint",
+ "tokio",
 ]
 
 [[package]]
@@ -15066,6 +15276,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
+name = "staging-chain-spec-builder"
+version = "12.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0db807ad16fdf09058f6a6346b4c34828d7d50c802a1797744d04a074e25218e"
+dependencies = [
+ "clap",
+ "docify",
+ "sc-chain-spec",
+ "serde",
+ "serde_json",
+ "sp-tracing",
+]
+
+[[package]]
 name = "staging-parachain-info"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16093,6 +16317,16 @@ checksum = "b9d12581f227e93f094d3af2ae690a574abb8a2b9b7a96e7cfe9647b2b617678"
 dependencies = [
  "once_cell",
  "valuable",
+]
+
+[[package]]
+name = "tracing-error"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b1581020d7a273442f5b45074a6a57d5757ad0a47dac0e9f0bd57b81936f3db"
+dependencies = [
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

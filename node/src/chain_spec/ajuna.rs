@@ -1,4 +1,4 @@
-use crate::chain_spec_utils::{AjunaKeys, GenesisKeys, RelayChain, TestnetDevKeys, WellKnownKeys};
+use super::chain_spec_utils::{AjunaKeys, GenesisKeys, RelayChain, TestnetDevKeys, WellKnownKeys};
 use ajuna_runtime::{AccountId, AuraId, EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
@@ -21,13 +21,6 @@ pub struct Extensions {
 	/// The id of the Parachain.
 	#[serde(alias = "paraId", alias = "ParaId")]
 	pub para_id: u32,
-}
-
-impl Extensions {
-	/// Try to get the extension from the given `ChainSpec`.
-	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
-		sc_chain_spec::get_extension(chain_spec.extensions())
-	}
 }
 
 /// Generate the session keys from individual elements.
@@ -122,17 +115,17 @@ fn testnet_genesis(
 }
 
 pub fn ajuna_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../../resources/ajuna/ajuna-raw.json")[..])
+	ChainSpec::from_json_bytes(&include_bytes!("../../../resources/ajuna/ajuna-raw.json")[..])
 }
 
 pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(
-		&include_bytes!("../../resources/ajuna/westend/ajuna-westend-raw.json")[..],
+		&include_bytes!("../../../resources/ajuna/westend/ajuna-westend-raw.json")[..],
 	)
 }
 
 pub fn ajuna_paseo_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(
-		&include_bytes!("../../resources/ajuna/paseo/ajuna-paseo-raw.json")[..],
+		&include_bytes!("../../../resources/ajuna/paseo/ajuna-paseo-raw.json")[..],
 	)
 }
