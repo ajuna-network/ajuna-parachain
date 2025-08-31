@@ -1,7 +1,7 @@
 use ajuna_runtime::{AccountId, AuraId};
 use sc_chain_spec::ChainType;
-use sp_core::{crypto::Ss58Codec, sr25519, Public};
-use sp_keyring::AccountKeyring::{Alice, Bob, Charlie, Dave, Eve, Ferdie};
+use sp_core::{Public, crypto::Ss58Codec, sr25519};
+use sp_keyring::sr25519::Keyring::{Alice, Bob, Charlie, Dave, Eve, Ferdie};
 use std::str::FromStr;
 
 pub fn pub_sr25519(ss58: &str) -> sr25519::Public {
