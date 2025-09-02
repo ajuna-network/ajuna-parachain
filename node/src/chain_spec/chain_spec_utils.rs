@@ -118,10 +118,7 @@ pub enum RelayChain {
 	Polkadot,
 	Paseo,
 	Westend,
-	PolkadotLocal,
-	PaseoLocal,
 	RococoLocal,
-	WestendLocal,
 }
 
 impl RelayChain {
@@ -130,10 +127,7 @@ impl RelayChain {
 			RelayChain::Polkadot => "polkadot",
 			RelayChain::Paseo => "paseo",
 			RelayChain::Westend => "westend",
-			RelayChain::PolkadotLocal => "polkadot-local",
-			RelayChain::PaseoLocal => "paseo-local",
 			RelayChain::RococoLocal => "rococo-local",
-			RelayChain::WestendLocal => "westend-local",
 		}
 	}
 
@@ -142,10 +136,7 @@ impl RelayChain {
 			RelayChain::Polkadot => "Polkadot",
 			RelayChain::Paseo => "Paseo",
 			RelayChain::Westend => "Westend",
-			RelayChain::PolkadotLocal => "Polkadot-local",
-			RelayChain::PaseoLocal => "Paseo-local",
 			RelayChain::RococoLocal => "Rococo-local",
-			RelayChain::WestendLocal => "Westend-local",
 		}
 	}
 
@@ -154,10 +145,7 @@ impl RelayChain {
 			RelayChain::Polkadot => ChainType::Live,
 			RelayChain::Paseo => ChainType::Live,
 			RelayChain::Westend => ChainType::Live,
-			RelayChain::PolkadotLocal => ChainType::Local,
-			RelayChain::PaseoLocal => ChainType::Local,
 			RelayChain::RococoLocal => ChainType::Local,
-			RelayChain::WestendLocal => ChainType::Local,
 		}
 	}
 	pub(crate) fn protocol_id(&self) -> &str {
@@ -165,10 +153,7 @@ impl RelayChain {
 			RelayChain::Polkadot => "ajuna-k",
 			RelayChain::Paseo => "ajuna-pas",
 			RelayChain::Westend => "ajuna-w",
-			RelayChain::PolkadotLocal => "ajuna-kl",
-			RelayChain::PaseoLocal => "ajuna-pasl",
 			RelayChain::RococoLocal => "ajuna-rl",
-			RelayChain::WestendLocal => "ajuna-wl",
 		}
 	}
 }
