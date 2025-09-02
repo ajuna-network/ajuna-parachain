@@ -17,7 +17,7 @@
 use ajuna::{ajuna_chain_spec, ajuna_config, ajuna_paseo_config, ajuna_westend_config};
 use chain_spec_utils::{GenesisKeys, RelayChain};
 use polkadot_omni_node_lib::{
-	chain_spec::LoadSpec,
+	chain_spec::{GenericChainSpec, LoadSpec},
 	runtime::{
 		AuraConsensusId, BlockNumber, Consensus, Runtime, RuntimeResolver as RuntimeResolverT,
 	},
@@ -52,12 +52,9 @@ impl LoadSpec for ChainSpecLoader {
 			"ajuna-westend-fresh" => Box::new(ajuna_chain_spec(WESTEND_PARA_ID.into(), GenesisKeys::TestnetDev, RelayChain::Westend)),
 
 			// rust code based configs for a local setup
-			"ajuna-polkadot-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::PolkadotLocal)),
-			"ajuna-paseo-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::PaseoLocal)),
-			"ajuna-westend-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::WestendLocal)),
 			"" | "ajuna-rococo-local" => Box::new(ajuna_chain_spec(LOCAL_PARA_ID.into(), GenesisKeys::WellKnown, RelayChain::RococoLocal)),
 
-			path => Box::new(ajuna::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+			path => Box::new(GenericChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
 }

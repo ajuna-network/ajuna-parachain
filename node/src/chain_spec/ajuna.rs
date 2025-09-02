@@ -1,27 +1,11 @@
 use super::chain_spec_utils::{AjunaKeys, GenesisKeys, RelayChain, TestnetDevKeys, WellKnownKeys};
 use ajuna_runtime::{AccountId, AuraId, EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
-use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
-use serde::{Deserialize, Serialize};
-
-/// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
+use polkadot_omni_node_lib::chain_spec::{Extensions, GenericChainSpec};
 
 const SS58_FORMAT: u32 = 1328;
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = staging_xcm::prelude::XCM_VERSION;
-
-/// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
-#[serde(deny_unknown_fields)]
-pub struct Extensions {
-	/// The relay chain of the Parachain.
-	#[serde(alias = "relayChain", alias = "RelayChain")]
-	pub relay_chain: String,
-	/// The id of the Parachain.
-	#[serde(alias = "paraId", alias = "ParaId")]
-	pub para_id: u32,
-}
 
 /// Generate the session keys from individual elements.
 ///
@@ -34,7 +18,7 @@ pub fn ajuna_chain_spec(
 	para_id: ParaId,
 	genesis_keys: GenesisKeys,
 	relay_chain: RelayChain,
-) -> ChainSpec {
+) -> GenericChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "AJUN".into());
@@ -53,8 +37,7 @@ pub fn ajuna_chain_spec(
 			(WellKnownKeys::endowed(), WellKnownKeys::invulnerables(), WellKnownKeys::governance()),
 	};
 
-	#[allow(deprecated)]
-	ChainSpec::builder(
+	GenericChainSpec::builder(
 		ajuna_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions { relay_chain: relay_chain.id().to_string(), para_id: para_id.into() },
 	)
@@ -114,18 +97,20 @@ fn testnet_genesis(
 	})
 }
 
-pub fn ajuna_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../../../resources/ajuna/ajuna-raw.json")[..])
+pub fn ajuna_config() -> Result<GenericChainSpec, String> {
+	GenericChainSpec::from_json_bytes(
+		&include_bytes!("../../../resources/ajuna/ajuna-raw.json")[..],
+	)
 }
 
-pub fn ajuna_westend_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(
+pub fn ajuna_westend_config() -> Result<GenericChainSpec, String> {
+	GenericChainSpec::from_json_bytes(
 		&include_bytes!("../../../resources/ajuna/westend/ajuna-westend-raw.json")[..],
 	)
 }
 
-pub fn ajuna_paseo_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(
+pub fn ajuna_paseo_config() -> Result<GenericChainSpec, String> {
+	GenericChainSpec::from_json_bytes(
 		&include_bytes!("../../../resources/ajuna/paseo/ajuna-paseo-raw.json")[..],
 	)
 }
