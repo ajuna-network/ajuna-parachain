@@ -276,7 +276,7 @@ pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetsFrom<T> {
 	fn contains(asset: &Asset, origin: &Location) -> bool {
 		let prefix = T::get();
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}, asset: {:?}", prefix, origin, asset);
+		log::trace!(target: "xcm::AssetsFrom", "prefix: {prefix:?}, origin: {origin:?}, asset: {asset:?}");
 		&prefix == origin
 	}
 }
@@ -285,7 +285,7 @@ impl Contains<(Location, Vec<Asset>)> for OnlyTeleportNative {
 	fn contains(t: &(Location, Vec<Asset>)) -> bool {
 		let self_para_id: u32 = ParachainInfo::parachain_id().into();
 		t.1.iter().any(|asset| {
-			log::trace!(target: "xcm::OnlyTeleportNative", "Asset requested to be teleported: {:?}", asset);
+			log::trace!(target: "xcm::OnlyTeleportNative", "Asset requested to be teleported: {asset:?}");
 
 			if let Asset { id: AssetId(asset_loc), fun: Fungible(_a) } = asset {
 				match asset_loc.unpack() {
