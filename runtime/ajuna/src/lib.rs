@@ -448,7 +448,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
-	type ExtensionsWeightInfo = ();
+	type ExtensionsWeightInfo = weights::frame_system_extensions::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -520,7 +520,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -906,10 +906,10 @@ impl pallet_nfts::Config for Runtime {
 	type Features = NftFeatures;
 	type OffchainSignature = Signature;
 	type OffchainPublic = AccountPublic;
+	type WeightInfo = weights::pallet_nfts::WeightInfo<Runtime>;
+	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = NftBenchmarkHelper;
-	type WeightInfo = ();
-	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 }
 
 parameter_types! {
