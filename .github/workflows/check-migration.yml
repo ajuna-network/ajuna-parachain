@@ -50,6 +50,12 @@ jobs:
         with:
           version: "3.6.1"
 
+      - name: Download try-runtime-cli
+        run: |
+          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.8.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
+          chmod +x ./try-runtime
+          try-runtime --version
+
       - name: Install rust toolchain from toolchain.toml
         run: rustup show
 
@@ -94,11 +100,9 @@ jobs:
       - name: Run ${{ matrix.runtime.name }} Runtime Checks
         #uses: "paritytech/try-runtime-gha@v0.2.0"
         run: |
-          cargo install -q --git https://github.com/paritytech/try-runtime-cli --tag v0.8.0 --locked && try-runtime --version
-
           PACKAGE_NAME=${{ matrix.runtime.package }}
           RUNTIME_BLOB_NAME=$(echo $PACKAGE_NAME | sed 's/-/_/g').compact.compressed.wasm
-          RUNTIME_BLOB_PATH=./target/production/wbuild/$PACKAGE_NAME/$RUNTIME_BLOB_NAME
+          RUNTIME_BLOB_PATH=./target/release/wbuild/$PACKAGE_NAME/$RUNTIME_BLOB_NAME
           export RUST_LOG=remote-ext=debug,runtime=debug
 
           echo "Extra args: $EXTRA_FLAGS"
