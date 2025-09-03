@@ -185,7 +185,7 @@ jobs:
           cache-on-failure: true
           prefix-key: "v1"
 
-      - run: cargo test --release --all-features --all-targets
+      - run: cargo test --all-features --all-targets
         env:
           RUSTFLAGS: "-C debug-assertions -D warnings"
           SKIP_WASM_BUILD: 1
