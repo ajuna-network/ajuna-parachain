@@ -94,7 +94,6 @@ jobs:
       - name: Run ${{ matrix.runtime.name }} Runtime Checks
         #uses: "paritytech/try-runtime-gha@v0.2.0"
         run: |
-          run: |
           cargo install -q --git https://github.com/paritytech/try-runtime-cli --tag v0.8.0 --locked && try-runtime --version
 
           PACKAGE_NAME=${{ matrix.runtime.package }}
