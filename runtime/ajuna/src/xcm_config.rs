@@ -17,9 +17,9 @@
 //! XCM configuration for Ajuna.
 
 use super::{
-	AccountId, AssetRegistry, Assets, Balance, Balances, MessageQueue, ParachainInfo,
-	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	TreasuryAccount, XcmpQueue, AJUN,
+	AJUN, AccountId, AssetRegistry, Assets, Balance, Balances, MessageQueue, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeHoldReason,
+	RuntimeOrigin, TreasuryAccount, XcmpQueue,
 };
 use crate::weights;
 use core::marker::PhantomData;
@@ -28,7 +28,10 @@ use cumulus_primitives_utility::XcmFeesTo32ByteAccount;
 use frame_support::{
 	pallet_prelude::{Get, PalletInfoAccess, Weight},
 	parameter_types,
-	traits::{Contains, ContainsPair, Everything, Nothing, TransformOrigin},
+	traits::{
+		Contains, ContainsPair, Everything, LinearStoragePrice, Nothing, TransformOrigin,
+		fungible::HoldConsideration,
+	},
 };
 use frame_system::EnsureRoot;
 use orml_traits::{
@@ -37,13 +40,13 @@ use orml_traits::{
 };
 use orml_xcm_support::IsNativeConcrete;
 use pallet_xcm::XcmPassthrough;
-use parachains_common::{message_queue::ParaIdToSibling, AssetIdForTrustBackedAssets};
+use parachains_common::{AssetIdForTrustBackedAssets, message_queue::ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use scale_info::TypeInfo;
 use sp_core::ConstU32;
-use sp_runtime::{traits::Convert, RuntimeDebug};
+use sp_runtime::{RuntimeDebug, traits::Convert};
 use sp_std::{
 	convert::{From, Into},
 	prelude::*,
@@ -61,7 +64,7 @@ use staging_xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, WithComputedOrigin,
 };
-use staging_xcm_executor::{traits::JustTry, XcmExecutor};
+use staging_xcm_executor::{XcmExecutor, traits::JustTry};
 use xcm_primitives::{AsAssetLocation, ConvertedRegisteredAssetId};
 
 parameter_types! {
@@ -273,7 +276,7 @@ pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetsFrom<T> {
 	fn contains(asset: &Asset, origin: &Location) -> bool {
 		let prefix = T::get();
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}, asset: {:?}", prefix, origin, asset);
+		log::trace!(target: "xcm::AssetsFrom", "prefix: {prefix:?}, origin: {origin:?}, asset: {asset:?}");
 		&prefix == origin
 	}
 }
@@ -282,7 +285,7 @@ impl Contains<(Location, Vec<Asset>)> for OnlyTeleportNative {
 	fn contains(t: &(Location, Vec<Asset>)) -> bool {
 		let self_para_id: u32 = ParachainInfo::parachain_id().into();
 		t.1.iter().any(|asset| {
-			log::trace!(target: "xcm::OnlyTeleportNative", "Asset requested to be teleported: {:?}", asset);
+			log::trace!(target: "xcm::OnlyTeleportNative", "Asset requested to be teleported: {asset:?}");
 
 			if let Asset { id: AssetId(asset_loc), fun: Fungible(_a) } = asset {
 				match asset_loc.unpack() {
@@ -375,6 +378,7 @@ pub struct XcmConfig;
 impl staging_xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
+	type XcmEventEmitter = PolkadotXcm;
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
@@ -408,10 +412,23 @@ impl staging_xcm_executor::Config for XcmConfig {
 // Converts a Signed Local Origin into a Location
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>;
 
+parameter_types! {
+	pub const DepositPerItem: Balance = 10 * AJUN;
+	pub const DepositPerByte: Balance = 10 * AJUN;
+	pub const AuthorizeAliasHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::PolkadotXcm(pallet_xcm::HoldReason::AuthorizeAlias);
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type CurrencyMatcher = ();
+	type AuthorizedAliasConsideration = HoldConsideration<
+		AccountId,
+		Balances,
+		AuthorizeAliasHoldReason,
+		LinearStoragePrice<DepositPerItem, DepositPerByte, Balance>,
+	>;
 	// Prohibit sending arbitrary XCMs from users of this chain
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, ()>;
 	type XcmRouter = XcmRouter;
@@ -558,21 +575,21 @@ impl orml_xcm::Config for Runtime {
 	type SovereignOrigin = EnsureRoot<AccountId>;
 }
 
-impl orml_xtokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type CurrencyId = CurrencyId;
-	type CurrencyIdConvert = CurrencyIdConvert;
-	type AccountIdToLocation = AccountIdToLocation;
-	type SelfLocation = SelfLocation;
-	type MinXcmFee = ParachainMinFee;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type LocationsFilter = Everything;
-	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type BaseXcmWeight = BaseXcmWeight;
-	type UniversalLocation = UniversalLocation;
-	type MaxAssetsForTransfer = MaxAssetsForTransfer;
-	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type RateLimiter = ();
-	type RateLimiterId = ();
-}
+// impl orml_xtokens::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Balance = Balance;
+// 	type CurrencyId = CurrencyId;
+// 	type CurrencyIdConvert = CurrencyIdConvert;
+// 	type AccountIdToLocation = AccountIdToLocation;
+// 	type SelfLocation = SelfLocation;
+// 	type MinXcmFee = ParachainMinFee;
+// 	type XcmExecutor = XcmExecutor<XcmConfig>;
+// 	type LocationsFilter = Everything;
+// 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
+// 	type BaseXcmWeight = BaseXcmWeight;
+// 	type UniversalLocation = UniversalLocation;
+// 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+// 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+// 	type RateLimiter = ();
+// 	type RateLimiterId = ();
+// }

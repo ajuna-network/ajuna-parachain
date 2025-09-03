@@ -15,24 +15,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	weights, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit, PoolAssets,
-	Runtime, RuntimeEvent, RuntimeOrigin, TreasuryAccount, AJUN, MILLI_AJUN,
+	AJUN, AccountId, AssetConversion, Assets, Balance, Balances, ExistentialDeposit, MILLI_AJUN,
+	PoolAssets, Runtime, RuntimeEvent, RuntimeOrigin, TreasuryAccount, weights,
 };
 use frame_support::{
-	ord_parameter_types,
+	PalletId, ord_parameter_types,
 	pallet_prelude::{ConstU32, PalletInfoAccess},
 	parameter_types,
 	traits::{
+		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
 		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
 		tokens::imbalance::ResolveAssetTo,
-		AsEnsureOriginWithArg, ConstU128, EnsureOriginWithArg,
 	},
-	PalletId,
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_asset_conversion::{Ascending, Chain, WithFirstAsset};
 use parachains_common::AssetIdForTrustBackedAssets;
-use sp_runtime::{traits::AccountIdConversion, Permill};
+use sp_runtime::{Permill, traits::AccountIdConversion};
 use sp_std::vec;
 
 pub type AssetBalance = Balance;
@@ -72,6 +71,7 @@ impl pallet_assets::Config<MainAssetsInstance> for Runtime {
 	type ApprovalDeposit = ConstU128<{ 10 * MILLI_AJUN }>;
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
+	type Holder = ();
 	type Extra = ();
 	type CallbackHandle = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
@@ -107,10 +107,82 @@ impl pallet_asset_conversion_tx_payment::Config for Runtime {
 		AssetConversion,
 		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
 	>;
+	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = AssetConversionTxHelper;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct AssetConversionTxHelper;
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type AssetConversionAssetIdFor<T> = <T as pallet_asset_conversion_tx_payment::Config>::AssetId;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl
+	pallet_asset_conversion_tx_payment::BenchmarkHelperTrait<
+		AccountId,
+		AssetConversionAssetIdFor<Runtime>,
+		AssetConversionAssetIdFor<Runtime>,
+	> for AssetConversionTxHelper
+{
+	fn create_asset_id_parameter(
+		_seed: u32,
+	) -> (AssetConversionAssetIdFor<Runtime>, AssetConversionAssetIdFor<Runtime>) {
+		todo!()
+		// // Use a different parachain' foreign assets pallet so that the asset is indeed foreign.
+		// let asset_id = Location::new(
+		// 	1,
+		// 	[
+		// 		Junction::Parachain(3000),
+		// 		Junction::PalletInstance(53),
+		// 		Junction::GeneralIndex(seed.into()),
+		// 	],
+		// );
+		// (asset_id.clone(), asset_id)
+	}
+
+	fn setup_balances_and_pool(_asset_id: AssetConversionAssetIdFor<Runtime>, _account: AccountId) {
+		todo!()
+		// use alloc::boxed::Box;
+		// use frame_support::{assert_ok, traits::fungibles::Mutate};
+		//
+		// assert_ok!(ForeignAssets::force_create(
+		// 	RuntimeOrigin::root(),
+		// 	asset_id.clone(),
+		// 	account.clone().into(), /* owner */
+		// 	true,                   /* is_sufficient */
+		// 	1,
+		// ));
+		//
+		// let lp_provider = account.clone();
+		// use frame_support::traits::Currency;
+		// let _ = Balances::deposit_creating(&lp_provider, u64::MAX.into());
+		// assert_ok!(ForeignAssets::mint_into(asset_id.clone(), &lp_provider, u64::MAX.into()));
+		//
+		// let token_native = Box::new(KsmLocation::get());
+		// let token_second = Box::new(asset_id);
+		//
+		// assert_ok!(AssetConversion::create_pool(
+		// 	RuntimeOrigin::signed(lp_provider.clone()),
+		// 	token_native.clone(),
+		// 	token_second.clone()
+		// ));
+		//
+		// assert_ok!(AssetConversion::add_liquidity(
+		// 	RuntimeOrigin::signed(lp_provider.clone()),
+		// 	token_native,
+		// 	token_second,
+		// 	(u32::MAX / 8).into(), // 1 desired
+		// 	u32::MAX.into(),       // 2 desired
+		// 	1,                     // 1 min
+		// 	1,                     // 2 min
+		// 	lp_provider,
+		// ));
+	}
 }
 
 impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
 	type WeightInfo = weights::pallet_asset_registry::WeightInfo<Runtime>;
@@ -201,4 +273,5 @@ impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
 	type CallbackHandle = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type Holder = ();
 }

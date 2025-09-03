@@ -22,45 +22,40 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+
 mod assets;
 mod gov;
 mod proxy_type;
-mod tx_payment;
 mod weights;
 pub mod xcm_config;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmark_helpers;
 
-use crate::{
-	assets::{Native, NativeAndAssets},
-	gov::EnsureRootOrMoreThanHalfCouncil,
-};
+use crate::{assets::NativeAndAssets, gov::EnsureRootOrMoreThanHalfCouncil};
 use cumulus_pallet_parachain_system::RelaychainDataProvider;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
-	construct_runtime,
+	PalletId, construct_runtime,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
 	pallet_prelude::ConstU32,
 	parameter_types,
 	traits::{
-		fungible::{HoldConsideration, NativeOrWithId},
-		tokens::{
-			imbalance::ResolveAssetTo, pay::PayAssetFromAccount, UnityAssetBalanceConversion,
-		},
 		AsEnsureOriginWithArg, ConstBool, Contains, LinearStoragePrice,
+		fungible::{HoldConsideration, NativeOrWithId},
+		tokens::{UnityAssetBalanceConversion, imbalance::ResolveTo, pay::PayAssetFromAccount},
 	},
 	weights::{
-		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial, constants::WEIGHT_REF_TIME_PER_SECOND,
 	},
-	PalletId,
 };
 use frame_system::{
+	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 	limits::{BlockLength, BlockWeights},
 	pallet_prelude::BlockNumberFor,
-	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::legacy::IdentityInfo;
 use pallet_nfts::{AttributeNamespace, Call as NftsCall};
@@ -68,14 +63,13 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU64, Get, OpaqueMetadata};
+use sp_core::{ConstU64, Get, OpaqueMetadata, crypto::KeyTypeId};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	ApplyExtrinsicResult, Cow, ExtrinsicInclusionMode, MultiSignature, generic, impl_opaque_keys,
 	traits::{
 		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify,
 	},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -97,7 +91,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use staging_xcm::latest::prelude::BodyId;
 
 use parachains_common::{
-	message_queue::NarrowOriginToSibling, AssetIdForTrustBackedAssets, BlockNumber, Hash, Header,
+	AssetIdForTrustBackedAssets, BlockNumber, Hash, Header, message_queue::NarrowOriginToSibling,
 };
 
 parameter_types! {
@@ -168,7 +162,32 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
-type Migrations = ();
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+pub type Migrations = (migrations::Unreleased, migrations::Permanent);
+
+/// The runtime migrations per release.
+#[allow(deprecated, missing_docs)]
+pub mod migrations {
+	use super::*;
+
+	/// Unreleased migrations. Add new ones here:
+	pub type Unreleased = (
+		cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
+		pallet_session::migrations::v1::MigrateV0ToV1<
+			Runtime,
+			pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
+		>,
+	);
+
+	/// Migrations/checks that do not need to be versioned and can run on every update.
+	pub type Permanent = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;
+
+	/// MBM migrations to apply on runtime upgrade.
+	pub type MbmMigrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
+}
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
@@ -227,14 +246,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("ajuna"),
-	impl_name: create_runtime_str!("ajuna"),
+	spec_name: Cow::Borrowed("ajuna"),
+	impl_name: Cow::Borrowed("ajuna"),
 	authoring_version: 1,
 	spec_version: 807,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
@@ -338,6 +357,7 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::Proxy(_) |
 			RuntimeCall::Scheduler(_) |
 			RuntimeCall::Preimage(_) |
+			RuntimeCall::MultiBlockMigrations(_) |
 			// monetary
 			RuntimeCall::Balances(_) |
 			RuntimeCall::Vesting(_) |
@@ -356,7 +376,7 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::TechnicalCommittee(_) |
 			RuntimeCall::TechnicalCommitteeMembership(_) |
 			RuntimeCall::Democracy(_) => true,
-			RuntimeCall::XTokens(_) => true,
+			// RuntimeCall::XTokens(_) => true,
 			RuntimeCall::OrmlXcm(_) => true,
 			RuntimeCall::Assets(_) => true,
 			RuntimeCall::AssetRegistry(_) => true,
@@ -424,10 +444,30 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type SingleBlockMigrations = ();
-	type MultiBlockMigrator = ();
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = weights::frame_system_extensions::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub MbmServiceWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MbmMigrations;
+	// Benchmarks need mocked migrations to guarantee that they succeed.
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler = frame_support::migrations::FreezeChainOnFailedMigration;
+	type MaxServiceWeight = MbmServiceWeight;
+	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -463,6 +503,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type MaxFreezes = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -473,19 +514,13 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = tx_payment::FungiblesAdapter<
-		NativeAndAssets,
-		Native,
-		// With the current implementation, we will only add the Native balance into the
-		// treasury in practice because the `OnChargeTransaction` converts the other asset
-		// to the Native asset on the spot for fee payment, and converts the refunds back
-		// to the original asset afterward.
-		ResolveAssetTo<TreasuryAccount, NativeAndAssets>,
-	>;
+	type OnChargeTransaction =
+		pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<TreasuryAccount, Balances>>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -528,6 +563,7 @@ impl pallet_treasury::Config for Runtime {
 	// which implies that we can use the simple unity conversion.
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = SpendPayoutPeriod;
+	type BlockNumberProvider = System;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmark_helpers::treasury::TreasuryArguments;
 }
@@ -572,6 +608,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 impl staging_parachain_info::Config for Runtime {}
@@ -623,6 +661,7 @@ impl pallet_session::Config for Runtime {
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
+	type DisablingStrategy = ();
 }
 
 impl pallet_aura::Config for Runtime {
@@ -681,6 +720,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -719,7 +759,11 @@ impl pallet_identity::Config for Runtime {
 	type PendingUsernameExpiration = ConstU32<100>;
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
+	type UsernameDeposit = BasicDeposit;
+	type UsernameGracePeriod = ConstU32<{ 3 * DAYS }>;
 	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {
@@ -746,6 +790,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 }
 
 parameter_types! {
@@ -766,6 +811,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Runtime>;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -796,7 +842,6 @@ parameter_types! {
 
 impl pallet_ajuna_awesome_avatars::Config for Runtime {
 	type PalletId = AwesomeAvatarsPalletId;
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Randomness = Randomness;
 	type KeyLimit = KeyLimit;
@@ -861,9 +906,10 @@ impl pallet_nfts::Config for Runtime {
 	type Features = NftFeatures;
 	type OffchainSignature = Signature;
 	type OffchainPublic = AccountPublic;
+	type WeightInfo = weights::pallet_nfts::WeightInfo<Runtime>;
+	type BlockNumberProvider = RelaychainDataProvider<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = NftBenchmarkHelper;
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -872,7 +918,6 @@ parameter_types! {
 
 impl pallet_ajuna_nft_transfer::Config for Runtime {
 	type PalletId = NftTransferPalletId;
-	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type ItemId = Hash;
 	type ItemConfig = pallet_nfts::ItemConfig;
@@ -887,7 +932,6 @@ parameter_types! {
 
 pub type AffiliatesInstanceAAA = pallet_ajuna_affiliates::Instance1;
 impl pallet_ajuna_affiliates::Config<AffiliatesInstanceAAA> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuleIdentifier = pallet_ajuna_awesome_avatars::types::AffiliateMethods;
 	type RuntimeRule = pallet_ajuna_awesome_avatars::FeePropagationOf<Runtime>;
 	type AffiliateMaxLevel = AffiliateMaxLevel;
@@ -901,7 +945,6 @@ parameter_types! {
 type TournamentInstanceAAA = pallet_ajuna_tournament::Instance1;
 impl pallet_ajuna_tournament::Config<TournamentInstanceAAA> for Runtime {
 	type PalletId = TournamentPalletId1;
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type SeasonId = pallet_ajuna_awesome_avatars::types::SeasonId;
 	type EntityId = pallet_ajuna_awesome_avatars::AvatarIdOf<Runtime>;
@@ -924,6 +967,7 @@ construct_runtime!(
 		Proxy: pallet_proxy = 7,
 		Scheduler: pallet_scheduler = 8,
 		Preimage: pallet_preimage = 9,
+		MultiBlockMigrations: pallet_migrations = 10,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 15,
@@ -943,7 +987,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		// DmpQueue: cumulus_pallet_dmp_queue = 33,
 		MessageQueue: pallet_message_queue = 34,
-		XTokens: orml_xtokens = 35,
+		// XTokens: orml_xtokens = 35,
 		OrmlXcm: orml_xcm = 36,
 
 		// Governance
@@ -988,11 +1032,14 @@ extern crate frame_benchmarking;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	use super::*;
+
 	define_benchmarks!(
+		[frame_system, SystemBench::<Runtime>]
+		[frame_system_extensions, SystemExtensionsBench::<Runtime>]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[frame_system, SystemBench::<Runtime>]
-		[orml_vesting, OrmlVestingBench::<Runtime>]
+		[pallet_asset_conversion, AssetConversion]
 		[pallet_assets, Assets]
 		// [pallet_assets, PoolAssets] // writes to same file, wait for ommni bencher to fix this
 		[pallet_asset_conversion, AssetConversion]
@@ -1013,10 +1060,36 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_treasury, Treasury]
 		[pallet_utility, Utility]
+		[orml_vesting, OrmlVestingBench::<Runtime>]
 	);
-	// Use this section if you want to benchmark individual pallets
-	// define_benchmarks!([orml_vesting, OrmlVestingBench::<Runtime>]);
+
+	pub use orml_pallets_benchmarking::vesting::Pallet as OrmlVestingBench;
+	impl orml_pallets_benchmarking::vesting::Config for Runtime {}
+
+	pub use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
+	pub use frame_benchmarking::{BenchmarkBatch, BenchmarkError, BenchmarkList};
+	pub use frame_support::traits::{StorageInfoTrait, TrackedStorageKey, WhitelistedStorageKeys};
+	pub use frame_system_benchmarking::{
+		Pallet as SystemBench, extensions::Pallet as SystemExtensionsBench,
+	};
+
+	impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+	impl frame_system_benchmarking::Config for Runtime {
+		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
+			ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+			Ok(())
+		}
+
+		fn verify_set_code() {
+			System::assert_last_event(
+				cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into(),
+			);
+		}
+	}
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+use benches::*;
 
 #[cfg(feature = "runtime-benchmarks")]
 pub struct NftBenchmarkHelper;
@@ -1204,12 +1277,6 @@ impl_runtime_apis! {
 			Vec<frame_benchmarking::BenchmarkList>,
 			Vec<frame_support::traits::StorageInfo>,
 		) {
-			use frame_benchmarking::{Benchmarking, BenchmarkList};
-			use frame_support::traits::StorageInfoTrait;
-			use frame_system_benchmarking::Pallet as SystemBench;
-			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
-			use orml_pallets_benchmarking::vesting::Pallet as OrmlVestingBench;
-
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
 
@@ -1219,46 +1286,12 @@ impl_runtime_apis! {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
-			use sp_storage::TrackedStorageKey;
-
-			use frame_system_benchmarking::Pallet as SystemBench;
-			impl frame_system_benchmarking::Config for Runtime {
-				fn setup_set_code_requirements(code: &sp_std::vec::Vec<u8>) -> Result<(), BenchmarkError> {
-					ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
-					Ok(())
-				}
-
-				fn verify_set_code() {
-					System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
-				}
-			}
-
-			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
-			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
-
-			use orml_pallets_benchmarking::vesting::Pallet as OrmlVestingBench;
-			impl orml_pallets_benchmarking::vesting::Config for Runtime {}
-
-			let whitelist: Vec<TrackedStorageKey> = vec![
-				// Block Number
-				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac").to_vec().into(),
-				// Total Issuance
-				hex_literal::hex!("c2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80").to_vec().into(),
-				// Execution Phase
-				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef7ff553b5a9862a516939d82b3d3d8661a").to_vec().into(),
-				// Event Count
-				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850").to_vec().into(),
-				// System Events
-				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7").to_vec().into(),
-			];
-
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
+			let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
 
-			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
 		}
 	}

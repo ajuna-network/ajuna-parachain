@@ -3,12 +3,14 @@
     "name": "ajuna",
     "package": "ajuna-runtime",
     "path": "runtime/ajuna-runtime",
-    "uri": "wss://ajuna.ibp.network:443"
+    "uri": "wss://ajuna.ibp.network:443",
+    "blocktime": 6000
   },
   {
     "name": "ajuna",
     "package": "ajuna-runtime",
     "path": "runtime/ajuna-runtime",
-    "uri": "wss://rpc-paseo.ajuna.network:443"
+    "uri": "wss://rpc-paseo.ajuna.network:443",
+    "blocktime": 6000
   }
 ]
