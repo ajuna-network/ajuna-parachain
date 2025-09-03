@@ -249,7 +249,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("ajuna"),
 	impl_name: Cow::Borrowed("ajuna"),
 	authoring_version: 1,
-	spec_version: 807,
+	spec_version: 808,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
