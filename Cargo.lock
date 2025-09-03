@@ -217,6 +217,7 @@ dependencies = [
  "pallet-insecure-randomness-collective-flip",
  "pallet-membership",
  "pallet-message-queue",
+ "pallet-migrations",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-preimage",

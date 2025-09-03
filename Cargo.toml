@@ -57,6 +57,7 @@ pallet-collective                          = { version = "41.0.0", default-featu
 pallet-democracy                           = { version = "41.0.0", default-features = false }
 pallet-identity                            = { version = "41.0.0", default-features = false }
 pallet-insecure-randomness-collective-flip = { version = "29.0.0", default-features = false }
+pallet-migrations                          = { version = "11.0.0", default-features = false }
 pallet-message-queue                       = { version = "44.0.0", default-features = false }
 pallet-membership                          = { version = "41.0.0", default-features = false }
 pallet-multisig                            = { version = "41.0.0", default-features = false }

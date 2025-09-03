@@ -162,7 +162,32 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
-type Migrations = ();
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+pub type Migrations = (migrations::Unreleased, migrations::Permanent);
+
+/// The runtime migrations per release.
+#[allow(deprecated, missing_docs)]
+pub mod migrations {
+	use super::*;
+
+	/// Unreleased migrations. Add new ones here:
+	pub type Unreleased = (
+		cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
+		pallet_session::migrations::v1::MigrateV0ToV1<
+			Runtime,
+			pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
+		>,
+	);
+
+	/// Migrations/checks that do not need to be versioned and can run on every update.
+	pub type Permanent = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;
+
+	/// MBM migrations to apply on runtime upgrade.
+	pub type MbmMigrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
+}
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
@@ -332,6 +357,7 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::Proxy(_) |
 			RuntimeCall::Scheduler(_) |
 			RuntimeCall::Preimage(_) |
+			RuntimeCall::MultiBlockMigrations(_) |
 			// monetary
 			RuntimeCall::Balances(_) |
 			RuntimeCall::Vesting(_) |
@@ -418,11 +444,30 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type SingleBlockMigrations = ();
-	type MultiBlockMigrator = ();
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = ();
+}
+
+parameter_types! {
+	pub MbmServiceWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MbmMigrations;
+	// Benchmarks need mocked migrations to guarantee that they succeed.
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler = frame_support::migrations::FreezeChainOnFailedMigration;
+	type MaxServiceWeight = MbmServiceWeight;
+	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -922,6 +967,7 @@ construct_runtime!(
 		Proxy: pallet_proxy = 7,
 		Scheduler: pallet_scheduler = 8,
 		Preimage: pallet_preimage = 9,
+		MultiBlockMigrations: pallet_migrations = 10,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 15,

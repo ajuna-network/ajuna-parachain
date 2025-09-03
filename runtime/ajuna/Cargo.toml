@@ -43,6 +43,7 @@ pallet-collective                          = { workspace = true }
 pallet-democracy                           = { workspace = true }
 pallet-identity                            = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
+pallet-migrations                          = { workspace = true }
 pallet-membership                          = { workspace = true }
 pallet-message-queue                       = { workspace = true }
 pallet-multisig                            = { workspace = true }

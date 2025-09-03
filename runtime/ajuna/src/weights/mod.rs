@@ -36,6 +36,7 @@ pub mod pallet_democracy;
 pub mod pallet_identity;
 pub mod pallet_membership;
 pub mod pallet_message_queue;
+pub mod pallet_migrations;
 pub mod pallet_multisig;
 pub mod pallet_preimage;
 pub mod pallet_proxy;
