@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-node"
-version = "0.8.7"
+version = "0.8.8"
 dependencies = [
  "ajuna-runtime",
  "color-eyre",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "ajuna-runtime"
-version = "0.8.7"
+version = "0.8.8"
 dependencies = [
  "assets-common",
  "cumulus-pallet-aura-ext",
