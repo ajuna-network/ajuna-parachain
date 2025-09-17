@@ -51,10 +51,10 @@ use sp_std::{
 	convert::{From, Into},
 	prelude::*,
 };
-use staging_xcm::latest::prelude::*;
+use xcm::latest::prelude::*;
 #[allow(deprecated)]
-use staging_xcm_builder::CurrencyAdapter;
-use staging_xcm_builder::{
+use xcm_builder::CurrencyAdapter;
+use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, Case,
 	DenyReserveTransferToRelayChain, DenyThenTry, DescribeAllTerminal, DescribeFamily,
@@ -64,7 +64,7 @@ use staging_xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, WithComputedOrigin,
 };
-use staging_xcm_executor::{XcmExecutor, traits::JustTry};
+use xcm_executor::{XcmExecutor, traits::JustTry};
 use xcm_primitives::{AsAssetLocation, ConvertedRegisteredAssetId};
 
 parameter_types! {
@@ -375,7 +375,7 @@ impl Contains<RuntimeCall> for SafeCallFilter {
 	}
 }
 pub struct XcmConfig;
-impl staging_xcm_executor::Config for XcmConfig {
+impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	type XcmEventEmitter = PolkadotXcm;

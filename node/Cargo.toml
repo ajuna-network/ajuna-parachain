@@ -73,7 +73,7 @@ substrate-state-trie-migration-rpc = { workspace = true }
 # `rococo-native` is an ajuna adjustement, so we can run local setups.
 polkadot-cli        = { workspace = true, features = ["rococo-native"] }
 polkadot-primitives = { workspace = true, features = ["std"] }
-staging-xcm         = { workspace = true, features = ["std"] }
+xcm         = { workspace = true, features = ["std"] }
 
 # Cumulus
 cumulus-client-cli                    = { workspace = true }
@@ -112,7 +112,7 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"polkadot-omni-node-lib/runtime-benchmarks",
-	"staging-xcm/runtime-benchmarks"
+	"xcm/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-support/try-runtime",

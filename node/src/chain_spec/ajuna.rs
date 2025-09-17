@@ -5,7 +5,7 @@ use polkadot_omni_node_lib::chain_spec::{Extensions, GenericChainSpec};
 
 const SS58_FORMAT: u32 = 1328;
 /// The default XCM version to set in genesis config.
-const SAFE_XCM_VERSION: u32 = staging_xcm::prelude::XCM_VERSION;
+const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
 /// Generate the session keys from individual elements.
 ///

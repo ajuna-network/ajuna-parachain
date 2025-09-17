@@ -76,9 +76,10 @@ sp-version                                 = { workspace = true }
 pallet-xcm                    = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
 polkadot-runtime-common       = { workspace = true }
-staging-xcm                   = { workspace = true }
-staging-xcm-builder           = { workspace = true }
-staging-xcm-executor          = { workspace = true }
+xcm          			      = { workspace = true }
+xcm-builder           		  = { workspace = true }
+xcm-executor          		  = { workspace = true }
+xcm-runtime-apis    	      = { workspace = true }
 
 # Cumulus
 cumulus-pallet-aura-ext             = { workspace = true }
@@ -91,7 +92,7 @@ cumulus-primitives-core             = { workspace = true }
 cumulus-primitives-utility          = { workspace = true }
 pallet-collator-selection           = { workspace = true }
 parachains-common                   = { workspace = true }
-staging-parachain-info              = { workspace = true }
+parachain-info       		        = { workspace = true }
 
 # ORML
 orml-traits = { workspace = true }
@@ -169,7 +170,7 @@ std = [
 	"pallet-utility/std",
 	"pallet-xcm/std",
 	"parachains-common/std",
-	"staging-parachain-info/std",
+	"parachain-info/std",
 	"polkadot-parachain-primitives/std",
 	"polkadot-runtime-common/std",
 	"sp-api/std",
@@ -186,9 +187,9 @@ std = [
 	"sp-storage/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
-	"staging-xcm/std",
-	"staging-xcm-builder/std",
-	"staging-xcm-executor/std",
+	"xcm/std",
+	"xcm-builder/std",
+	"xcm-executor/std",
 	"substrate-wasm-builder",
     # integritee
 	"pallet-asset-registry/std",
@@ -199,7 +200,8 @@ std = [
 	"pallet-ajuna-awesome-avatars-benchmarking?/std",
 	"pallet-ajuna-tournament/std",
 	"pallet-ajuna-nft-transfer/std",
-	"pallet-migrations/std"
+	"pallet-migrations/std",
+	"xcm-runtime-apis/std"
 ]
 
 runtime-benchmarks = [
@@ -239,8 +241,8 @@ runtime-benchmarks = [
 	"polkadot-parachain-primitives/runtime-benchmarks",
 	"polkadot-runtime-common/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
-	"staging-xcm-builder/runtime-benchmarks",
-	"staging-xcm-executor/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
     # integritee
 	"pallet-asset-registry/runtime-benchmarks",
     # ajuna
@@ -251,8 +253,9 @@ runtime-benchmarks = [
 	"pallet-ajuna-tournament/runtime-benchmarks",
 	"pallet-asset-conversion-tx-payment/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
-	"staging-xcm/runtime-benchmarks",
-	"pallet-migrations/runtime-benchmarks"
+	"xcm/runtime-benchmarks",
+	"pallet-migrations/runtime-benchmarks",
+	"xcm-runtime-apis/runtime-benchmarks"
 ]
 
 try-runtime = [
@@ -293,7 +296,7 @@ try-runtime = [
 	"pallet-xcm/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"sp-runtime/try-runtime",
-	"staging-parachain-info/try-runtime",
+	"parachain-info/try-runtime",
     # integritee
 	"pallet-asset-registry/try-runtime",
     # ajuna
