@@ -95,7 +95,6 @@ use xcm::{
 	Version as XcmVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
 	latest::prelude::{AssetId, BodyId},
 };
-use xcm_config::RelayLocation;
 use xcm_runtime_apis::{
 	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
 	fees::Error as XcmPaymentApiError,
@@ -1304,14 +1303,12 @@ impl_runtime_apis! {
 
 	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			let native_asset = RelayLocation::get();
-			// We accept the native asset to pay fees.
-			let mut acceptable_assets = vec![AssetId(native_asset.clone())];
-			// We also accept all assets in a pool with the native token.
-			acceptable_assets.extend(
-				assets_common::PoolAdapter::<Runtime>::get_assets_in_pool_with(native_asset)
-				.map_err(|()| XcmPaymentApiError::VersionedConversionFailed)?
-			);
+			// For now, we only accept the native and the relay token here.
+			let native_asset = xcm_config::SelfLocation::get();
+			let relay_asset = xcm_config::RelayLocation::get();
+
+			let acceptable_assets = vec![AssetId(native_asset.clone()), AssetId(relay_asset.clone())];
+
 			PolkadotXcm::query_acceptable_payment_assets(xcm_version, acceptable_assets)
 		}
 
