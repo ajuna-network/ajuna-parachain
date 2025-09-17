@@ -120,9 +120,10 @@ polkadot-omni-node-lib        = { version = "0.7.0" }
 polkadot-parachain-primitives = { version = "17.0.0", default-features = false }
 polkadot-primitives           = { version = "19.0.0", default-features = false }
 polkadot-runtime-common       = { version = "20.0.0", default-features = false }
-staging-xcm                   = { version = "17.0.0", default-features = false }
-staging-xcm-builder           = { version = "21.1.0", default-features = false }
-staging-xcm-executor          = { version = "20.0.1", default-features = false }
+xcm                           = { version = "17.0.0", package = "staging-xcm", default-features = false }
+xcm-builder                   = { version = "21.1.0", package = "staging-xcm-builder", default-features = false }
+xcm-executor                  = { version = "20.0.1", package = "staging-xcm-executor", default-features = false }
+xcm-runtime-apis              = { version = "0.8.0", default-features = false }
 
 # Cumulus
 cumulus-client-cli                      = { version = "0.24.0" }
@@ -146,7 +147,7 @@ cumulus-primitives-utility              = { version = "0.21.0", default-features
 cumulus-relay-chain-interface           = { version = "0.24.0" }
 pallet-collator-selection               = { version = "22.0.0", default-features = false }
 parachains-common                       = { version = "22.0.0", default-features = false }
-staging-parachain-info                  = { version = "0.21.0", default-features = false }
+parachain-info                          = { version = "0.21.0", package = "staging-parachain-info", default-features = false }
 
 # ORML
 orml-traits = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
