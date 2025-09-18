@@ -41,7 +41,7 @@ use orml_traits::{
 use orml_xcm_support::IsNativeConcrete;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::{AssetIdForTrustBackedAssets, message_queue::ParaIdToSibling};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use scale_info::TypeInfo;
@@ -76,6 +76,7 @@ parameter_types! {
 #[derive(
 	Encode,
 	Decode,
+	DecodeWithMemTracking,
 	Eq,
 	PartialEq,
 	Copy,
@@ -571,25 +572,23 @@ impl Convert<AccountId, Location> for AccountIdToLocation {
 }
 
 impl orml_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type SovereignOrigin = EnsureRoot<AccountId>;
 }
 
-// impl orml_xtokens::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type Balance = Balance;
-// 	type CurrencyId = CurrencyId;
-// 	type CurrencyIdConvert = CurrencyIdConvert;
-// 	type AccountIdToLocation = AccountIdToLocation;
-// 	type SelfLocation = SelfLocation;
-// 	type MinXcmFee = ParachainMinFee;
-// 	type XcmExecutor = XcmExecutor<XcmConfig>;
-// 	type LocationsFilter = Everything;
-// 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-// 	type BaseXcmWeight = BaseXcmWeight;
-// 	type UniversalLocation = UniversalLocation;
-// 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
-// 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-// 	type RateLimiter = ();
-// 	type RateLimiterId = ();
-// }
+impl orml_xtokens::Config for Runtime {
+	type Balance = Balance;
+	type CurrencyId = CurrencyId;
+	type CurrencyIdConvert = CurrencyIdConvert;
+	type AccountIdToLocation = AccountIdToLocation;
+	type SelfLocation = SelfLocation;
+	type MinXcmFee = ParachainMinFee;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type LocationsFilter = Everything;
+	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
+	type BaseXcmWeight = BaseXcmWeight;
+	type UniversalLocation = UniversalLocation;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type RateLimiter = ();
+	type RateLimiterId = ();
+}
