@@ -382,7 +382,7 @@ impl Contains<RuntimeCall> for BaseCallFilter {
 			RuntimeCall::TechnicalCommittee(_) |
 			RuntimeCall::TechnicalCommitteeMembership(_) |
 			RuntimeCall::Democracy(_) => true,
-			// RuntimeCall::XTokens(_) => true,
+			RuntimeCall::XTokens(_) => true,
 			RuntimeCall::OrmlXcm(_) => true,
 			RuntimeCall::Assets(_) => true,
 			RuntimeCall::AssetRegistry(_) => true,
@@ -579,7 +579,6 @@ parameter_types! {
 }
 
 impl orml_vesting::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = EnsureSigned<AccountId>;
@@ -993,7 +992,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		// DmpQueue: cumulus_pallet_dmp_queue = 33,
 		MessageQueue: pallet_message_queue = 34,
-		// XTokens: orml_xtokens = 35,
+		XTokens: orml_xtokens = 35,
 		OrmlXcm: orml_xcm = 36,
 
 		// Governance

@@ -150,11 +150,11 @@ parachains-common                       = { version = "22.0.0", default-features
 parachain-info                          = { version = "0.21.0", package = "staging-parachain-info", default-features = false }
 
 # ORML
-orml-traits = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
-orml-vesting = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
-orml-xcm = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
-orml-xcm-support = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
-orml-xtokens = { git = "https://github.com/ajuna-network/open-runtime-module-library", branch = "cl/polkadot-stable2506-1", default-features = false }
+orml-traits = { version = "1.5.0", default-features = false }
+orml-vesting = { version = "1.5.0", default-features = false }
+orml-xcm = { version = "1.5.0", default-features = false }
+orml-xcm-support = { version = "1.5.0", default-features = false }
+orml-xtokens = { version = "1.5.0", default-features = false }
 
 # Runtime
 ajuna-runtime = { path = "runtime/ajuna" }
